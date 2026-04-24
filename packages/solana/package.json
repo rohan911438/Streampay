@@ -1,0 +1,14 @@
+{
+  "name": "@paystream/solana",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./rpc": "./src/rpc.ts",
+    "./constants": "./src/constants.ts"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.98.0"
+  }
+}
