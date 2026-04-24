@@ -1,0 +1,12 @@
+{
+  "name": "paystream-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run --workspace web dev",
+    "build": "npm run --workspace web build",
+    "start": "npm run --workspace web start"
+  }
+}
