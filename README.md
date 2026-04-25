@@ -45,6 +45,7 @@ Required values:
 - NEXT_PUBLIC_SOLANA_RPC_URL
 - DODO_API_KEY
 - DODO_SUBSCRIPTION_PRODUCT_ID
+- DODO_WEBHOOK_SECRET
 
 Use your custom RPC provider URL (Helius, QuickNode, etc.).
 For consistency, set both values to the same endpoint.
@@ -54,6 +55,12 @@ Optional Dodo values:
 - DODO_API_BASE_URL (defaults to `https://test.dodopayments.com`)
 - DODO_SUCCESS_URL
 - DODO_CANCEL_URL
+
+Webhook setup:
+
+- Configure Dodo to send events to `https://your-domain/api/webhooks/dodo`.
+- The endpoint accepts `payment.succeeded`, `subscription.active`, and `subscription.renewed` events.
+- Set `DODO_WEBHOOK_SECRET` to the signing secret from Dodo so incoming requests can be verified.
 
 ## Dodo Checkout API
 
@@ -83,6 +90,19 @@ Success response:
 	"checkout_url": "https://..."
 }
 ```
+
+## Dodo Webhook API
+
+Backend endpoint:
+
+- `POST /api/webhooks/dodo`
+
+Behavior:
+
+- Verifies the request signature with `DODO_WEBHOOK_SECRET` before parsing the payload.
+- Logs the event type and key identifiers such as subscription ID and customer email.
+- Updates the in-memory subscription snapshot used by the merchant dashboard.
+- Returns a small acknowledgement payload after the event is recorded.
 
 ## How To Run Locally
 

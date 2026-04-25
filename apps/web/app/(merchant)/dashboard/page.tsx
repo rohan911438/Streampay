@@ -1,3 +1,4 @@
+import { getDodoWebhookSnapshot } from "@/lib/dodo-webhook-state";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { WalletStatus } from "@/components/wallet-status";
@@ -8,7 +9,11 @@ const metrics = [
   { label: "Monthly revenue", value: "1,240 USDC" },
 ];
 
+export const dynamic = "force-dynamic";
+
 export default function DashboardPage() {
+  const webhookSnapshot = getDodoWebhookSnapshot();
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
@@ -39,12 +44,53 @@ export default function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>Recent activity</CardTitle>
-            <CardDescription>Simple placeholder feed for future billing events.</CardDescription>
+            <CardDescription>Latest Dodo webhook events captured by the backend.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-slate-600">
-            <p>• New subscription created for demo merchant.</p>
-            <p>• Next renewal scheduled for the next billing cycle.</p>
-            <p>• Wallet connection is available at the root provider level.</p>
+            {webhookSnapshot.latestEvents.length > 0 ? (
+              webhookSnapshot.latestEvents.slice(0, 3).map((event) => (
+                <div key={event.id} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                  <p className="font-medium text-slate-900">{event.eventType}</p>
+                  <p className="text-xs text-slate-500">{event.receivedAt}</p>
+                  <p className="mt-2 text-sm text-slate-600">
+                    {event.subscriptionId ? `Subscription: ${event.subscriptionId}` : "Subscription: not provided"}
+                  </p>
+                  <p className="text-sm text-slate-600">
+                    {event.customerEmail ? `Customer: ${event.customerEmail}` : "Customer email not provided"}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <>
+                <p>• Waiting for the first Dodo webhook event.</p>
+                <p>• Configure the webhook URL in the Dodo dashboard to start streaming events.</p>
+                <p>• Incoming events update the in-memory subscription snapshot here.</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Webhook state</CardTitle>
+            <CardDescription>Current subscription snapshots updated by webhook events.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-slate-600">
+            {webhookSnapshot.subscriptions.length > 0 ? (
+              webhookSnapshot.subscriptions.slice(0, 3).map((subscription) => (
+                <div key={subscription.recordKey} className="rounded-lg border border-slate-200 p-3">
+                  <p className="font-medium text-slate-900">
+                    {subscription.subscriptionId ?? subscription.customerEmail ?? subscription.recordKey}
+                  </p>
+                  <p className="text-xs text-slate-500">{subscription.customerEmail ?? "No customer email"}</p>
+                  <p className="mt-2">Status: {subscription.status}</p>
+                  <p>Last event: {subscription.lastEventType}</p>
+                  <p>Payments seen: {subscription.paymentCount}</p>
+                </div>
+              ))
+            ) : (
+              <p>No subscription snapshots yet.</p>
+            )}
           </CardContent>
         </Card>
 
