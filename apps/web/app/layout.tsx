@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
+import "@solana/wallet-adapter-react-ui/styles.css";
 import { Providers } from "@/components/providers";
 
 export const metadata: Metadata = {

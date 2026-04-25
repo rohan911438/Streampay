@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletReadyState } from "@solana/wallet-adapter-base";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -21,40 +22,22 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
   const [customerName, setCustomerName] = useState("Demo Subscriber");
   const [customerEmail, setCustomerEmail] = useState("demo@paystream.app");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isPhantomInjected, setIsPhantomInjected] = useState(false);
-  const { connected, connecting, disconnect, connect, publicKey, wallet, wallets, select } = useWallet();
-
-  const phantomWallet = useMemo(
-    () => wallets.find((item) => item.adapter.name === "Phantom"),
-    [wallets]
-  );
-
-  const isPhantomInstalled =
-    phantomWallet?.readyState === WalletReadyState.Installed ||
-    phantomWallet?.readyState === WalletReadyState.Loadable;
+  const { connected, publicKey, wallets } = useWallet();
 
   useEffect(() => {
     setMounted(true);
-
-    const updatePhantomPresence = () => {
-      const provider = window.solana;
-      setIsPhantomInjected(Boolean(provider?.isPhantom || window.phantom?.solana?.isPhantom));
-    };
-
-    updatePhantomPresence();
-    window.addEventListener("load", updatePhantomPresence);
-    window.addEventListener("focus", updatePhantomPresence);
-
-    const intervalId = window.setInterval(updatePhantomPresence, 1000);
-
-    return () => {
-      window.removeEventListener("load", updatePhantomPresence);
-      window.removeEventListener("focus", updatePhantomPresence);
-      window.clearInterval(intervalId);
-    };
   }, []);
 
-  const hasPhantom = Boolean(phantomWallet) || isPhantomInjected || isPhantomInstalled;
+  const hasDetectedWallet = useMemo(
+    () =>
+      wallets.some(
+        (item) =>
+          item.readyState === WalletReadyState.Installed ||
+          item.readyState === WalletReadyState.Loadable
+      ),
+    [wallets]
+  );
+
   const readyToRenderWalletState = mounted;
 
   const statusText = useMemo(() => {
@@ -62,20 +45,16 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
       return "Checking wallet...";
     }
 
-    if (connecting) {
-      return "Connecting wallet...";
-    }
-
     if (connected && publicKey) {
       return "Wallet connected";
     }
 
-    if (!hasPhantom) {
-      return "Phantom not detected";
+    if (!hasDetectedWallet) {
+      return "No compatible wallet extension detected";
     }
 
     return "Wallet not connected";
-  }, [connected, connecting, publicKey, hasPhantom, readyToRenderWalletState]);
+  }, [connected, publicKey, hasDetectedWallet, readyToRenderWalletState]);
 
   const shortKey = useMemo(() => {
     if (!publicKey) {
@@ -85,35 +64,6 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
     const base58 = publicKey.toBase58();
     return `${base58.slice(0, 4)}...${base58.slice(-4)}`;
   }, [publicKey]);
-
-  async function onConnectClick() {
-    setActionError(null);
-
-    if (!phantomWallet) {
-      setActionError("Phantom wallet adapter is unavailable in this browser.");
-      return;
-    }
-
-    if (!wallet || wallet.adapter.name !== phantomWallet.adapter.name) {
-      select(phantomWallet.adapter.name);
-    }
-
-    try {
-      await connect();
-    } catch {
-      setActionError("Wallet connection was not completed.");
-    }
-  }
-
-  async function onDisconnectClick() {
-    setActionError(null);
-
-    try {
-      await disconnect();
-    } catch {
-      setActionError("Unable to disconnect wallet right now.");
-    }
-  }
 
   async function onCheckoutClick() {
     setActionError(null);
@@ -181,6 +131,13 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
             </div>
           ) : null}
 
+          {!connected && readyToRenderWalletState && !hasDetectedWallet ? (
+            <p className="mt-3 text-sm text-amber-700">
+              No compatible Solana wallet extension detected. Install Phantom, Solflare, or Backpack,
+              then refresh.
+            </p>
+          ) : null}
+
           {actionError ? <p className="mt-3 text-sm text-red-600">{actionError}</p> : null}
         </div>
 
@@ -213,23 +170,10 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
         </div>
 
         <div className="flex flex-wrap gap-3">
-          {connected ? (
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => void onDisconnectClick()}
-              disabled={isSubmitting}
-            >
-              Disconnect
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              onClick={() => void onConnectClick()}
-              disabled={connecting || isSubmitting || !mounted}
-            >
-              {connecting ? "Connecting..." : "Connect Phantom"}
-            </Button>
+          {readyToRenderWalletState && (
+            <WalletMultiButton
+              className="!h-10 !rounded-md !bg-slate-950 !px-4 !text-sm !font-medium !text-white hover:!bg-slate-800"
+            />
           )}
 
           <Button type="button" disabled={!connected || isSubmitting} onClick={() => void onCheckoutClick()}>
