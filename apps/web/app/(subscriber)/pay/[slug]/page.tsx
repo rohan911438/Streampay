@@ -3,10 +3,6 @@ import { PaymentPrep } from "@/components/checkout/payment-prep";
 
 export const dynamic = "force-dynamic";
 
-export function generateStaticParams() {
-  return [{ slug: "demo" }];
-}
-
 type PaymentPageProps = {
   params: {
     slug: string;
@@ -29,7 +25,7 @@ export default function PaymentPage({ params }: PaymentPageProps) {
         </p>
       </div>
 
-      <PaymentPrep />
+      <PaymentPrep isDemo={isDemo} />
 
       <Card>
         <CardHeader>
