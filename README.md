@@ -43,9 +43,46 @@ Required values:
 
 - SOLANA_RPC_URL
 - NEXT_PUBLIC_SOLANA_RPC_URL
+- DODO_API_KEY
+- DODO_SUBSCRIPTION_PRODUCT_ID
 
 Use your custom RPC provider URL (Helius, QuickNode, etc.).
 For consistency, set both values to the same endpoint.
+
+Optional Dodo values:
+
+- DODO_API_BASE_URL (defaults to `https://test.dodopayments.com`)
+- DODO_SUCCESS_URL
+- DODO_CANCEL_URL
+
+## Dodo Checkout API
+
+Backend endpoint:
+
+- `POST /api/dodo/create-checkout`
+
+Request body:
+
+```json
+{
+	"email": "subscriber@example.com",
+	"name": "Subscriber Name"
+}
+```
+
+Behavior:
+
+- Uses server-side `DODO_API_KEY` to authenticate with Dodo Payments (test mode).
+- Uses predefined `DODO_SUBSCRIPTION_PRODUCT_ID` for checkout session creation.
+- Returns only the `checkout_url` needed by the frontend.
+
+Success response:
+
+```json
+{
+	"checkout_url": "https://..."
+}
+```
 
 ## How To Run Locally
 
@@ -83,7 +120,13 @@ npm run start
 
 ## Windows PowerShell Note
 
-If your system blocks npm.ps1 execution, run commands via cmd:
+If your system blocks npm.ps1 execution, use `npm.cmd` directly in PowerShell:
+
+```powershell
+npm.cmd run dev
+```
+
+You can also run via `cmd` explicitly:
 
 ```powershell
 cmd /c "cd /d c:\Users\dell\Desktop\Solana Hackathon && npm run dev"
