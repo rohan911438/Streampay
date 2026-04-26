@@ -4,6 +4,8 @@ import { randomUUID } from "crypto";
 type DbUser = {
   id: string;
   wallet_address: string;
+  created_at?: string;
+  updated_at?: string;
 };
 
 type DbPlan = {
@@ -12,6 +14,43 @@ type DbPlan = {
   price_usdc: string;
   billing_interval: "monthly" | "yearly";
   dodo_product_id?: string | null;
+};
+
+export type PlanRecord = {
+  id: string;
+  name: string;
+  priceUsdc: number;
+  billingInterval: "monthly" | "yearly";
+  description: string | null;
+  dodoProductId: string | null;
+  active: boolean;
+  createdAt: string;
+};
+
+export type CreatePlanInput = {
+  name: string;
+  priceUsdc: number;
+  billingInterval: "monthly" | "yearly";
+  description?: string | null;
+};
+
+export type CheckoutSessionRecord = {
+  id: string;
+  userId: string;
+  planId: string;
+  subscriptionId: string | null;
+  checkoutSessionId: string;
+  status: "pending" | "completed" | "failed" | "expired";
+  createdAt: string;
+  updatedAt: string;
+  completedAt: string | null;
+};
+
+export type CreateCheckoutSessionRecordInput = {
+  userId: string;
+  planId: string;
+  subscriptionId?: string | null;
+  checkoutSessionId: string;
 };
 
 export type DashboardMetrics = {
@@ -40,10 +79,17 @@ export function isDatabaseConfigured(): boolean {
   return Boolean(process.env.DATABASE_URL?.trim());
 }
 
+const DODO_API_BASE_URL = process.env.DODO_API_BASE_URL ?? "https://test.dodopayments.com";
+const DODO_API_KEY = process.env.DODO_API_KEY;
+
 function createFallbackUser(walletAddress: string): DbUser {
+  const now = new Date().toISOString();
+
   return {
     id: `wallet:${walletAddress.trim()}`,
     wallet_address: walletAddress.trim(),
+    created_at: now,
+    updated_at: now,
   };
 }
 
@@ -57,6 +103,88 @@ function createFallbackPlan(dodoProductId?: string): DbPlan {
   };
 }
 
+function extractDodoProductId(payload: Record<string, unknown>): string | null {
+  const candidates = [payload.product_id, payload.productId, payload.id, payload.data];
+
+  for (const candidate of candidates) {
+    if (typeof candidate === "string" && candidate.trim().length > 0) {
+      return candidate.trim();
+    }
+
+    if (candidate && typeof candidate === "object") {
+      const nested = candidate as Record<string, unknown>;
+      const nestedData = nested.data && typeof nested.data === "object" ? (nested.data as Record<string, unknown>) : null;
+      const nestedValue =
+        nested.product_id ??
+        nested.productId ??
+        nested.id ??
+        (nestedData?.product_id) ??
+        (nestedData?.productId) ??
+        (nestedData?.id);
+
+      if (typeof nestedValue === "string" && nestedValue.trim().length > 0) {
+        return nestedValue.trim();
+      }
+    }
+  }
+
+  return null;
+}
+
+async function createDodoPlanProduct(input: CreatePlanInput): Promise<string> {
+  if (!DODO_API_KEY) {
+    throw new Error("DODO_API_KEY is required to create Dodo products");
+  }
+
+  const response = await fetch(`${DODO_API_BASE_URL}/products`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${DODO_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      name: input.name,
+      description: input.description ?? undefined,
+      billing_interval: input.billingInterval,
+      interval: input.billingInterval,
+      amount: input.priceUsdc,
+      price: input.priceUsdc,
+      currency: "USDC",
+      billing_model: "subscription",
+      metadata: {
+        source: "streampay",
+      },
+    }),
+    cache: "no-store",
+  });
+
+  let payload: Record<string, unknown> = {};
+
+  try {
+    payload = (await response.json()) as Record<string, unknown>;
+  } catch {
+    if (!response.ok) {
+      throw new Error("Dodo product creation returned an invalid response");
+    }
+  }
+
+  if (!response.ok) {
+    const message =
+      (typeof payload.detail === "string" && payload.detail) ||
+      (typeof payload.message === "string" && payload.message) ||
+      "Dodo product creation failed";
+    throw new Error(message);
+  }
+
+  const dodoProductId = extractDodoProductId(payload);
+
+  if (!dodoProductId) {
+    throw new Error("Dodo product creation response did not include a product identifier");
+  }
+
+  return dodoProductId;
+}
+
 export function isLikelySolanaWalletAddress(value: string): boolean {
   return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(value);
 }
@@ -68,24 +196,20 @@ export async function findOrCreateUserByWallet(walletAddress: string): Promise<D
     return createFallbackUser(normalizedWalletAddress);
   }
 
-  const existing = await db.query<DbUser>(
-    "SELECT id, wallet_address FROM users WHERE wallet_address = $1 LIMIT 1",
+  const result = await db.query<DbUser>(
+    `INSERT INTO users (wallet_address)
+     VALUES ($1)
+     ON CONFLICT (wallet_address)
+     DO UPDATE SET updated_at = NOW()
+     RETURNING id, wallet_address, created_at::text AS created_at, updated_at::text AS updated_at`,
     [normalizedWalletAddress]
   );
 
-  if (existing.rows[0]) {
-    return existing.rows[0];
+  if (result.rows[0]) {
+    return result.rows[0];
   }
 
-  const created = await db.insert<DbUser>("users", {
-    wallet_address: normalizedWalletAddress,
-  });
-
-  if (!created) {
-    throw new Error("Failed to create wallet user");
-  }
-
-  return created;
+  throw new Error("Failed to create or load wallet user");
 }
 
 export async function resolveCheckoutPlan(dodoProductId?: string): Promise<DbPlan> {
@@ -157,6 +281,53 @@ export async function createPendingSubscription(userId: string, plan: DbPlan): P
   }
 
   return result.rows[0];
+}
+
+export async function createCheckoutSessionRecord(input: CreateCheckoutSessionRecordInput): Promise<void> {
+  if (!isDatabaseConfigured()) {
+    return;
+  }
+
+  await db.insert("checkout_sessions", {
+    user_id: input.userId,
+    plan_id: input.planId,
+    subscription_id: input.subscriptionId ?? null,
+    checkout_session_id: input.checkoutSessionId,
+    status: "pending",
+  });
+}
+
+export async function updateCheckoutSessionRecordStatus(input: {
+  checkoutSessionId?: string | null;
+  subscriptionId?: string | null;
+  status: "pending" | "completed" | "failed" | "expired";
+}): Promise<void> {
+  if (!isDatabaseConfigured()) {
+    return;
+  }
+
+  if (input.checkoutSessionId) {
+    await db.query(
+      `UPDATE checkout_sessions
+       SET status = $2,
+           updated_at = NOW(),
+           completed_at = CASE WHEN $2 = 'completed' THEN NOW() ELSE completed_at END
+       WHERE checkout_session_id = $1`,
+      [input.checkoutSessionId, input.status]
+    );
+    return;
+  }
+
+  if (input.subscriptionId) {
+    await db.query(
+      `UPDATE checkout_sessions
+       SET status = $2,
+           updated_at = NOW(),
+           completed_at = CASE WHEN $2 = 'completed' THEN NOW() ELSE completed_at END
+       WHERE subscription_id = $1`,
+      [input.subscriptionId, input.status]
+    );
+  }
 }
 
 export async function recordSubscriptionEvent(input: {
@@ -309,6 +480,95 @@ export async function getDashboardSubscriptionSnapshots(
     paymentCount: Number(row.payment_count),
     lastUpdatedAt: row.last_updated_at,
   }));
+}
+
+export async function listPlans(): Promise<PlanRecord[]> {
+  if (!isDatabaseConfigured()) {
+    return [];
+  }
+
+  const result = await db.query<{
+    id: string;
+    name: string;
+    price_usdc: string;
+    billing_interval: "monthly" | "yearly";
+    description: string | null;
+    dodo_product_id: string | null;
+    is_active: boolean;
+    created_at: string;
+  }>(
+    `SELECT id,
+            name,
+            price_usdc::text AS price_usdc,
+            billing_interval,
+            description,
+            dodo_product_id,
+            is_active,
+            created_at::text AS created_at
+     FROM plans
+     ORDER BY created_at DESC`
+  );
+
+  return result.rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    priceUsdc: Number(row.price_usdc),
+    billingInterval: row.billing_interval,
+    description: row.description,
+    dodoProductId: row.dodo_product_id,
+    active: row.is_active,
+    createdAt: row.created_at,
+  }));
+}
+
+export async function createPlanWithDodo(input: CreatePlanInput): Promise<PlanRecord> {
+  if (!isDatabaseConfigured()) {
+    throw new Error("DATABASE_URL is required to create plans");
+  }
+
+  const dodoProductId = await createDodoPlanProduct(input);
+
+  const createdPlan = await db.withTransaction(async (client) => {
+    const result = await client.query<{
+      id: string;
+      name: string;
+      price_usdc: string;
+      billing_interval: "monthly" | "yearly";
+      description: string | null;
+      dodo_product_id: string | null;
+      is_active: boolean;
+      created_at: string;
+    }>(
+      `INSERT INTO plans (name, price_usdc, billing_interval, description, dodo_product_id, is_active)
+       VALUES ($1, $2, $3, $4, $5, true)
+       RETURNING id,
+                 name,
+                 price_usdc::text AS price_usdc,
+                 billing_interval,
+                 description,
+                 dodo_product_id,
+                 is_active,
+                 created_at::text AS created_at`,
+      [input.name, input.priceUsdc, input.billingInterval, input.description ?? null, dodoProductId]
+    );
+
+    if (!result.rows[0]) {
+      throw new Error("Failed to save plan in database");
+    }
+
+    return result.rows[0];
+  });
+
+  return {
+    id: createdPlan.id,
+    name: createdPlan.name,
+    priceUsdc: Number(createdPlan.price_usdc),
+    billingInterval: createdPlan.billing_interval,
+    description: createdPlan.description,
+    dodoProductId: createdPlan.dodo_product_id,
+    active: createdPlan.is_active,
+    createdAt: createdPlan.created_at,
+  };
 }
 
 export async function findLatestSubscriptionIdForUser(userId: string): Promise<string | null> {

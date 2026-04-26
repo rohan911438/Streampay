@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import {
+  createCheckoutSessionRecord,
   createPendingSubscription,
   findOrCreateUserByWallet,
   isLikelySolanaWalletAddress,
@@ -15,11 +16,25 @@ type CreateCheckoutRequestBody = {
 
 type DodoCheckoutResponse = {
   checkout_url?: unknown;
+  checkout_session_id?: unknown;
+  checkoutSessionId?: unknown;
+  id?: unknown;
+  payment_id?: unknown;
+  paymentId?: unknown;
   data?: {
     checkout_url?: unknown;
+    checkout_session_id?: unknown;
+    checkoutSessionId?: unknown;
+    id?: unknown;
+    payment_id?: unknown;
+    paymentId?: unknown;
   };
   checkout?: {
     url?: unknown;
+    id?: unknown;
+    session_id?: unknown;
+    checkout_session_id?: unknown;
+    checkoutSessionId?: unknown;
   };
 };
 
@@ -41,6 +56,33 @@ function extractCheckoutUrl(response: DodoCheckoutResponse): string | null {
     response.checkout_url,
     response.data?.checkout_url,
     response.checkout?.url,
+  ];
+
+  for (const value of candidates) {
+    if (typeof value === "string" && value.length > 0) {
+      return value;
+    }
+  }
+
+  return null;
+}
+
+function extractCheckoutSessionId(response: DodoCheckoutResponse): string | null {
+  const candidates = [
+    response.checkout_session_id,
+    response.checkoutSessionId,
+    response.payment_id,
+    response.paymentId,
+    response.id,
+    response.data?.checkout_session_id,
+    response.data?.checkoutSessionId,
+    response.data?.payment_id,
+    response.data?.paymentId,
+    response.data?.id,
+    response.checkout?.checkout_session_id,
+    response.checkout?.checkoutSessionId,
+    response.checkout?.session_id,
+    response.checkout?.id,
   ];
 
   for (const value of candidates) {
@@ -86,10 +128,11 @@ export async function POST(req: Request) {
 
   let userId: string;
   let pendingSubscriptionId: string;
+  let plan: Awaited<ReturnType<typeof resolveCheckoutPlan>>;
 
   try {
     const user = await findOrCreateUserByWallet(walletAddress);
-    const plan = await resolveCheckoutPlan(DODO_SUBSCRIPTION_PRODUCT_ID);
+    plan = await resolveCheckoutPlan(DODO_SUBSCRIPTION_PRODUCT_ID);
     const pendingSubscription = await createPendingSubscription(user.id, plan);
 
     userId = user.id;
@@ -164,6 +207,7 @@ export async function POST(req: Request) {
   }
 
   const checkoutUrl = extractCheckoutUrl(dodoResponse);
+  const checkoutSessionId = extractCheckoutSessionId(dodoResponse);
 
   if (!checkoutUrl) {
     return NextResponse.json(
@@ -172,15 +216,31 @@ export async function POST(req: Request) {
     );
   }
 
-  await recordSubscriptionEvent({
+  if (!checkoutSessionId) {
+    console.warn("[create-checkout] checkout session id missing in Dodo response; tracking row skipped");
+  } else {
+    void createCheckoutSessionRecord({
+      userId,
+      planId: plan.id,
+      subscriptionId: pendingSubscriptionId,
+      checkoutSessionId,
+    }).catch((error) => {
+      console.error("[create-checkout] failed to store checkout session tracking row", error);
+    });
+  }
+
+  void recordSubscriptionEvent({
     userId,
     subscriptionId: pendingSubscriptionId,
     eventType: "subscription_created",
     payload: {
       checkout_url: checkoutUrl,
+      checkout_session_id: checkoutSessionId,
       provider: "dodo",
     },
+  }).catch((error) => {
+    console.error("[create-checkout] failed to record subscription_created event", error);
   });
 
-  return NextResponse.json({ checkout_url: checkoutUrl, subscription_id: pendingSubscriptionId }, { status: 200 });
+  return NextResponse.json({ checkout_url: checkoutUrl, subscription_id: pendingSubscriptionId, checkout_session_id: checkoutSessionId }, { status: 200 });
 }

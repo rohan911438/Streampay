@@ -42,6 +42,22 @@ CREATE TABLE IF NOT EXISTS subscriptions (
   CONSTRAINT subscriptions_plan_fk FOREIGN KEY (plan_id) REFERENCES plans(id) ON DELETE RESTRICT
 );
 
+CREATE TABLE IF NOT EXISTS checkout_sessions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL,
+  plan_id UUID NOT NULL,
+  subscription_id UUID,
+  checkout_session_id TEXT NOT NULL UNIQUE,
+  status TEXT NOT NULL DEFAULT 'pending',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  completed_at TIMESTAMPTZ,
+  CONSTRAINT checkout_sessions_status_valid CHECK (status IN ('pending', 'completed', 'failed', 'expired')),
+  CONSTRAINT checkout_sessions_user_fk FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT checkout_sessions_plan_fk FOREIGN KEY (plan_id) REFERENCES plans(id) ON DELETE RESTRICT,
+  CONSTRAINT checkout_sessions_subscription_fk FOREIGN KEY (subscription_id) REFERENCES subscriptions(id) ON DELETE SET NULL
+);
+
 CREATE TABLE IF NOT EXISTS subscription_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL,
@@ -74,6 +90,15 @@ CREATE INDEX IF NOT EXISTS idx_subscriptions_user_status
 CREATE INDEX IF NOT EXISTS idx_subscriptions_next_billing
   ON subscriptions (next_billing_date)
   WHERE status IN ('active', 'pending');
+
+CREATE INDEX IF NOT EXISTS idx_checkout_sessions_user_status
+  ON checkout_sessions (user_id, status);
+
+CREATE INDEX IF NOT EXISTS idx_checkout_sessions_subscription_id
+  ON checkout_sessions (subscription_id);
+
+CREATE INDEX IF NOT EXISTS idx_checkout_sessions_created_at
+  ON checkout_sessions (created_at DESC);
 
 CREATE INDEX IF NOT EXISTS idx_subscription_events_user_occurred
   ON subscription_events (user_id, occurred_at DESC);

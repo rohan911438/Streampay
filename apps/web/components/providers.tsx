@@ -9,6 +9,7 @@ import { PhantomWalletAdapter } from "@solana/wallet-adapter-phantom";
 import { SolflareWalletAdapter } from "@solana/wallet-adapter-solflare";
 import { BackpackWalletAdapter } from "@solana/wallet-adapter-backpack";
 import { clusterApiUrl } from "@solana/web3.js";
+import { CurrentUserProvider } from "@/components/current-user-provider";
 
 const network = WalletAdapterNetwork.Devnet;
 
@@ -71,7 +72,7 @@ export function Providers({ children }: Readonly<{ children: ReactNode }>) {
       <WalletProvider wallets={wallets} autoConnect={false}>
         <WalletModalProvider>
           <WalletConnectionGuard />
-          {children}
+          <CurrentUserProvider>{children}</CurrentUserProvider>
         </WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>

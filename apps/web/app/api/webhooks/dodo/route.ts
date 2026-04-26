@@ -7,6 +7,7 @@ import {
   findUserIdBySubscriptionId,
   findLatestSubscriptionIdForUser,
   recordSubscriptionEvent,
+  updateCheckoutSessionRecordStatus,
   updateSubscriptionStatus,
 } from "@/lib/subscriptions-db";
 
@@ -147,6 +148,34 @@ function extractAmountUsdc(payload: WebhookPayload): number | null {
   return null;
 }
 
+function extractCheckoutSessionId(payload: WebhookPayload): string | null {
+  const candidates = [
+    payload.data?.checkout_session_id,
+    payload.data?.checkoutSessionId,
+    payload.data?.session_id,
+    payload.data?.sessionId,
+    payload.data?.payment_id,
+    payload.data?.paymentId,
+    payload.payment?.checkout_session_id,
+    payload.payment?.checkoutSessionId,
+    payload.payment?.session_id,
+    payload.payment?.sessionId,
+    payload.payment?.id,
+    payload.subscription?.checkout_session_id,
+    payload.subscription?.checkoutSessionId,
+    payload.subscription?.session_id,
+    payload.subscription?.sessionId,
+  ];
+
+  for (const value of candidates) {
+    if (typeof value === "string" && value.trim().length > 0) {
+      return value.trim();
+    }
+  }
+
+  return null;
+}
+
 function mapEventTypeToStatus(eventType: string): "active" | "pending" | "canceled" | null {
   if (eventType === "payment.succeeded" || eventType === "subscription.active" || eventType === "subscription.renewed") {
     return "active";
@@ -161,6 +190,22 @@ function mapEventTypeToStatus(eventType: string): "active" | "pending" | "cancel
   }
 
   return null;
+}
+
+function mapEventTypeToCheckoutStatus(eventType: string): "pending" | "completed" | "failed" | "expired" {
+  if (eventType === "payment.succeeded" || eventType === "subscription.active" || eventType === "subscription.renewed") {
+    return "completed";
+  }
+
+  if (eventType === "payment.failed") {
+    return "failed";
+  }
+
+  if (eventType === "subscription.canceled") {
+    return "expired";
+  }
+
+  return "pending";
 }
 
 function mapEventTypeToLogType(eventType: string):
@@ -223,6 +268,7 @@ export async function POST(req: Request) {
 
   const identifiers = extractIdentifiers(payload);
   const walletAddress = extractWalletAddress(payload);
+  const checkoutSessionId = extractCheckoutSessionId(payload) ?? identifiers.paymentId;
   const internalSubscriptionId = extractInternalSubscriptionId(payload);
   const amountUsdc = extractAmountUsdc(payload);
 
@@ -274,6 +320,14 @@ export async function POST(req: Request) {
         await updateSubscriptionStatus({
           subscriptionId,
           status: nextStatus,
+        });
+      }
+
+      if (checkoutSessionId || subscriptionId) {
+        await updateCheckoutSessionRecordStatus({
+          checkoutSessionId,
+          subscriptionId,
+          status: mapEventTypeToCheckoutStatus(eventType),
         });
       }
     }

@@ -6,10 +6,12 @@ import { WalletReadyState } from "@solana/wallet-adapter-base";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { Wallet as WalletIcon, ShieldCheck, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useCurrentUser } from "@/components/current-user-provider";
 
 export function WalletStatus() {
   const [mounted, setMounted] = useState(false);
   const { connected, publicKey, wallets } = useWallet();
+  const { currentUser, isSyncingUser } = useCurrentUser();
 
   const hasDetectedWallet = useMemo(
     () =>
@@ -47,10 +49,10 @@ export function WalletStatus() {
       
       <div className="hidden sm:block">
         <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 leading-none mb-1">
-          {connected ? "Identity Verified" : "Account"}
+          {connected ? (isSyncingUser ? "Syncing Identity" : "Identity Verified") : "Account"}
         </p>
         <p className="text-[11px] font-bold text-slate-900 tracking-tight leading-none">
-          {readyToRenderWalletState ? addressLabel : "..."}
+          {readyToRenderWalletState ? (currentUser?.walletAddress ? addressLabel : addressLabel) : "..."}
         </p>
       </div>
 

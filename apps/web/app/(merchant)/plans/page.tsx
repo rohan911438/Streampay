@@ -15,50 +15,101 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-// --- Mock Data ---
-
-const initialPlans = [
-  {
-    id: "pdt_1",
-    name: "Starter Pro",
-    price: 49,
-    interval: "monthly",
-    description: "Perfect for growing teams and early-stage SaaS platforms.",
-    active: true,
-  },
-  {
-    id: "pdt_2",
-    name: "Enterprise",
-    price: 199,
-    interval: "monthly",
-    description: "Advanced features and priority support for high-volume merchants.",
-    active: true,
-  },
-  {
-    id: "pdt_3",
-    name: "Annual Basic",
-    price: 490,
-    interval: "yearly",
-    description: "Discounted annual plan with all basic features included.",
-    active: true,
-  }
-];
+type PlanRecord = {
+  id: string;
+  name: string;
+  priceUsdc: number;
+  billingInterval: "monthly" | "yearly";
+  description: string | null;
+  dodoProductId: string | null;
+  active: boolean;
+};
 
 // --- Page ---
 
 export default function PlansPage() {
   const [mounted, setMounted] = useState(false);
-  const [plans, setPlans] = useState(initialPlans);
+  const [plans, setPlans] = useState<PlanRecord[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [planName, setPlanName] = useState("");
+  const [planPrice, setPlanPrice] = useState("");
+  const [billingInterval, setBillingInterval] = useState<"monthly" | "yearly">("monthly");
+  const [description, setDescription] = useState("");
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    if (!mounted) return;
+
+    const loadPlans = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = await fetch("/api/plans", { cache: "no-store" });
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error ?? "Failed to load plans.");
+        }
+
+        setPlans(Array.isArray(data.plans) ? data.plans : []);
+      } catch (loadError) {
+        setError(loadError instanceof Error ? loadError.message : "Failed to load plans.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void loadPlans();
+  }, [mounted]);
+
   const handleCopy = (id: string) => {
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleCreatePlan = async () => {
+    setError(null);
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("/api/plans", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: planName,
+          priceUsdc: Number(planPrice),
+          billingInterval,
+          description: description.trim() || null,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error ?? "Failed to create plan.");
+      }
+
+      setPlans((currentPlans) => [data.plan, ...currentPlans]);
+      setPlanName("");
+      setPlanPrice("");
+      setBillingInterval("monthly");
+      setDescription("");
+      setIsModalOpen(false);
+    } catch (createError) {
+      setError(createError instanceof Error ? createError.message : "Failed to create plan.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!mounted) {
@@ -90,16 +141,25 @@ export default function PlansPage() {
         </Button>
       </div>
 
+      {error && (
+        <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+          {error}
+        </div>
+      )}
+
       {/* Plans Grid */}
       <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-        {plans.map((plan) => (
+        {!isLoading && plans.map((plan) => (
           <Card key={plan.id} className="group relative overflow-hidden border-slate-200 bg-white shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/50">
             <CardHeader className="pb-4">
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
-                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-widest border border-emerald-100">
-                     <div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" />
-                     Active
+                  <div className={cn(
+                    "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest border",
+                    plan.active ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-slate-100 text-slate-500 border-slate-200"
+                  )}>
+                     <div className={cn("h-1 w-1 rounded-full", plan.active ? "bg-emerald-500 animate-pulse" : "bg-slate-400")} />
+                     {plan.active ? "Active" : "Inactive"}
                   </div>
                   <CardTitle className="text-xl font-bold pt-2">{plan.name}</CardTitle>
                 </div>
@@ -110,12 +170,12 @@ export default function PlansPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-black tracking-tighter text-slate-900">${plan.price}</span>
-                <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">/ {plan.interval === 'monthly' ? 'mo' : 'yr'}</span>
+                <span className="text-3xl font-black tracking-tighter text-slate-900">${plan.priceUsdc}</span>
+                <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">/ {plan.billingInterval === 'monthly' ? 'mo' : 'yr'}</span>
               </div>
               
               <p className="text-sm text-slate-500 leading-relaxed line-clamp-2 min-h-[40px]">
-                {plan.description}
+                {plan.description ?? "No description provided."}
               </p>
 
               <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
@@ -135,9 +195,18 @@ export default function PlansPage() {
                   Copy Link
                 </Button>
               </div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-300">
+                Dodo ID: {plan.dodoProductId ?? "pending"}
+              </p>
             </CardContent>
           </Card>
         ))}
+
+        {isLoading && (
+          <div className="col-span-full rounded-3xl border border-slate-200 bg-white p-10 text-center text-sm font-bold text-slate-400">
+            Loading plans...
+          </div>
+        )}
 
         <button 
           onClick={() => setIsModalOpen(true)}
@@ -182,6 +251,8 @@ export default function PlansPage() {
                   <input 
                     type="text" 
                     placeholder="e.g. Professional Tier" 
+                    value={planName}
+                    onChange={(event) => setPlanName(event.target.value)}
                     className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm font-semibold focus:border-primary focus:outline-none transition-colors"
                   />
                 </div>
@@ -194,15 +265,21 @@ export default function PlansPage() {
                       <input 
                         type="number" 
                         placeholder="29" 
+                        value={planPrice}
+                        onChange={(event) => setPlanPrice(event.target.value)}
                         className="w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-8 pr-4 py-3 text-sm font-semibold focus:border-primary focus:outline-none transition-colors"
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Interval</label>
-                    <select className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm font-semibold focus:border-primary focus:outline-none appearance-none transition-colors">
-                      <option>Monthly</option>
-                      <option>Yearly</option>
+                    <select
+                      value={billingInterval}
+                      onChange={(event) => setBillingInterval(event.target.value as "monthly" | "yearly")}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm font-semibold focus:border-primary focus:outline-none appearance-none transition-colors"
+                    >
+                      <option value="monthly">Monthly</option>
+                      <option value="yearly">Yearly</option>
                     </select>
                   </div>
                 </div>
@@ -212,6 +289,8 @@ export default function PlansPage() {
                   <textarea 
                     rows={3}
                     placeholder="What's included in this plan?" 
+                    value={description}
+                    onChange={(event) => setDescription(event.target.value)}
                     className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm font-semibold focus:border-primary focus:outline-none transition-colors resize-none"
                   />
                 </div>
@@ -219,13 +298,14 @@ export default function PlansPage() {
 
               <div className="pt-4 flex flex-col gap-3">
                  <Button 
-                    onClick={() => setIsModalOpen(false)}
+                    onClick={handleCreatePlan}
+                    disabled={isSubmitting}
                     className="h-14 rounded-xl text-sm font-black uppercase tracking-[0.2em] bg-slate-900 text-white hover:bg-slate-800 shadow-xl shadow-slate-200"
                   >
-                    Create Plan
+                    {isSubmitting ? "Creating..." : "Create Plan"}
                   </Button>
                   <p className="text-[10px] text-center text-slate-400 font-bold uppercase tracking-widest px-8">
-                    By creating this plan, it will be immediately available for subscription via smart contract.
+                    The plan is created in StreamPay and registered in Dodo before it is saved locally.
                   </p>
               </div>
             </CardContent>
