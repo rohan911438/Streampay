@@ -8,8 +8,8 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const variantStyles: Record<ButtonVariant, string> = {
-  default: "bg-slate-950 text-white hover:bg-slate-800",
-  secondary: "border border-slate-200 bg-white text-slate-900 hover:bg-slate-100",
+  default: "bg-primary text-primary-foreground hover:bg-primary/90",
+  secondary: "border border-input bg-secondary text-secondary-foreground hover:bg-secondary/80",
 };
 
 export function Button({ className, variant = "default", ...props }: ButtonProps) {
