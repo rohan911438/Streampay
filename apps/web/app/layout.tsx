@@ -19,6 +19,28 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                // Suppress 'Cannot redefine property: ethereum' and related extension errors
+                const handleExtensionError = (e) => {
+                  const message = e.message || (e.reason && e.reason.message);
+                  if (message && (message.includes('ethereum') || message.includes('defineProperty'))) {
+                    if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+                    if (e.preventDefault) e.preventDefault();
+                    console.warn('Suppressed extension conflict error:', message);
+                    return true;
+                  }
+                };
+                window.addEventListener('error', handleExtensionError, true);
+                window.addEventListener('unhandledrejection', handleExtensionError, true);
+              })();
+            `,
+          }}
+        />
+      </head>
       <body className={`${inter.className} h-full antialiased`}>
         <Providers>{children}</Providers>
       </body>

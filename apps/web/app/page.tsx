@@ -195,7 +195,7 @@ export default function LandingPage() {
                       <WalletMultiButton className="!h-14 !rounded-2xl !bg-primary !px-8 !text-lg !font-bold !text-primary-foreground hover:!bg-primary/90 !transition-all shadow-xl shadow-primary/20 hover:-translate-y-1 active:scale-95" />
                     )
                   )}
-                  <a 
+                  <a
                     href="#how-it-works"
                     className="inline-flex items-center justify-center h-14 rounded-2xl px-8 text-lg font-bold bg-secondary text-secondary-foreground border border-input hover:bg-secondary/80 transition-all"
                   >
@@ -254,9 +254,9 @@ export default function LandingPage() {
                 <h2 className="text-3xl font-bold tracking-tight sm:text-5xl">Powerful features for modern builders</h2>
                 <p className="text-lg text-muted-foreground">Everything you need to scale your recurring revenue on-chain.</p>
               </div>
-              <a 
-                href="https://docs.dodopayments.com" 
-                target="_blank" 
+              <a
+                href="https://docs.dodopayments.com"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center rounded-xl px-6 py-2 text-sm font-medium transition bg-secondary text-secondary-foreground border border-input hover:bg-secondary/80"
               >
