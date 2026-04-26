@@ -191,13 +191,12 @@ export default function LandingPage() {
                   ) : (
                     <WalletMultiButton className="!h-14 !rounded-2xl !bg-primary !px-8 !text-lg !font-bold !text-primary-foreground hover:!bg-primary/90 !transition-all shadow-xl shadow-primary/20 hover:-translate-y-1 active:scale-95" />
                   )}
-                  <Button
-                    variant="secondary"
-                    className="h-14 rounded-2xl px-8 text-lg font-bold hover:bg-secondary/80 transition-all"
-                    asChild
+                  <a 
+                    href="#how-it-works"
+                    className="inline-flex items-center justify-center h-14 rounded-2xl px-8 text-lg font-bold bg-secondary text-secondary-foreground border border-input hover:bg-secondary/80 transition-all"
                   >
-                    <a href="#how-it-works">Learn More</a>
-                  </Button>
+                    Learn More
+                  </a>
                 </div>
                 <div className="flex items-center gap-6 pt-4 grayscale opacity-60">
                   <span className="text-xs font-bold uppercase tracking-widest">Powered By</span>
@@ -251,9 +250,14 @@ export default function LandingPage() {
                 <h2 className="text-3xl font-bold tracking-tight sm:text-5xl">Powerful features for modern builders</h2>
                 <p className="text-lg text-muted-foreground">Everything you need to scale your recurring revenue on-chain.</p>
               </div>
-              <Button className="rounded-xl px-6" variant="secondary" asChild>
-                <a href="https://docs.dodopayments.com" target="_blank" rel="noopener noreferrer">View API Docs</a>
-              </Button>
+              <a 
+                href="https://docs.dodopayments.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center rounded-xl px-6 py-2 text-sm font-medium transition bg-secondary text-secondary-foreground border border-input hover:bg-secondary/80"
+              >
+                View API Docs
+              </a>
             </div>
 
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -336,7 +340,6 @@ export default function LandingPage() {
                   {connected ? (
                     <Button
                       variant="secondary"
-                      size="lg"
                       className="h-14 rounded-2xl px-10 text-lg font-bold shadow-lg shadow-black/10 transition-all hover:scale-105"
                       onClick={() => router.push("/dashboard")}
                     >

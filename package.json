@@ -9,5 +9,8 @@
     "dev": "npm run --workspace web dev",
     "build": "npm run --workspace web build",
     "start": "npm run --workspace web start"
+  },
+  "dependencies": {
+    "process": "^0.11.10"
   }
 }
