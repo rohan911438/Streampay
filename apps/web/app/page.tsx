@@ -120,6 +120,17 @@ export default function LandingPage() {
     setIsMounted(true);
   }, []);
 
+  // Automatically redirect to dashboard once wallet is connected
+  useEffect(() => {
+    if (connected && isMounted) {
+      // Small timeout to allow the user to see the "Connected" state before moving
+      const timer = setTimeout(() => {
+        router.push("/dashboard");
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [connected, isMounted, router]);
+
   if (!isMounted) return null;
 
   return (
@@ -366,13 +377,14 @@ export default function LandingPage() {
               </nav>
             </div>
 
-            <div className="space-y-4">
-              <h4 className="text-sm font-bold uppercase tracking-widest">Connect</h4>
-              <nav className="flex flex-col gap-2.5">
-                <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Twitter</a>
-                <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Discord</a>
-                <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Contact Support</a>
-              </nav>
+            <div className="space-y-8">
+              <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-900">Platform</h4>
+              <div className="flex flex-col gap-6 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                <a href="/dashboard" className="hover:text-slate-900 transition-colors">Merchant Dashboard</a>
+                <a href="/plans" className="hover:text-slate-900 transition-colors">Manage Plans</a>
+                <a href="/analytics" className="hover:text-slate-900 transition-colors">Real-time Analytics</a>
+                <a href="/pay/demo" className="hover:text-slate-900 transition-colors">Demo Checkout</a>
+              </div>
             </div>
           </div>
 
