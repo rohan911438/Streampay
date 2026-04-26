@@ -1,7 +1,6 @@
 import { getDodoWebhookSnapshot } from "@/lib/dodo-webhook-state";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { WalletStatus } from "@/components/wallet-status";
 import { Button } from "@/components/ui/button";
 import { 
   Users, 
@@ -45,22 +44,17 @@ export default function DashboardPage() {
   return (
     <div className="space-y-10">
       {/* Hero Header */}
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-        <div className="space-y-1.5">
-          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest border border-primary/10">
-            <Activity className="h-3 w-3" />
-            Live Operations
-          </div>
-          <h2 className="text-4xl font-black tracking-tight text-slate-900">
-            Control Center
-          </h2>
-          <p className="max-w-xl text-sm font-medium text-slate-500 leading-relaxed">
-            Monitor your subscription health, manage revenue streams, and track real-time blockchain webhook events.
-          </p>
+      <div className="space-y-1.5">
+        <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest border border-primary/10">
+          <Activity className="h-3 w-3" />
+          Live Operations
         </div>
-        <div className="w-full lg:w-auto">
-          <WalletStatus />
-        </div>
+        <h2 className="text-4xl font-black tracking-tight text-slate-900">
+          Control Center
+        </h2>
+        <p className="max-w-xl text-sm font-medium text-slate-500 leading-relaxed">
+          Monitor your subscription health, manage revenue streams, and track real-time blockchain webhook events.
+        </p>
       </div>
 
       {/* Metrics Grid */}

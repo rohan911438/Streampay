@@ -15,17 +15,6 @@ const nextConfig = {
         zlib: false,
       };
     }
-    
-    // Provide polyfills for both server and client if needed, 
-    // but mainly ensure 'process' is available.
-    const webpack = require('webpack');
-    config.plugins.push(
-      new webpack.ProvidePlugin({
-        process: 'process/browser',
-        Buffer: ['buffer', 'Buffer'],
-      })
-    );
-
     return config;
   },
 };

@@ -29,41 +29,38 @@ export function WalletStatus() {
 
   const addressLabel = connected
     ? publicKey?.toBase58().slice(0, 4) + "..." + publicKey?.toBase58().slice(-4)
-    : "Not Connected";
+    : "Select Wallet";
 
   return (
     <div className={cn(
-      "group relative flex items-center gap-4 rounded-2xl border p-4 transition-all duration-500",
+      "relative flex items-center gap-3 rounded-xl border px-3 py-2 transition-all duration-300",
       connected 
-        ? "border-emerald-100 bg-emerald-50/30" 
-        : "border-slate-200 bg-white shadow-sm hover:shadow-md"
+        ? "border-emerald-100 bg-emerald-50/50" 
+        : "border-slate-200 bg-white"
     )}>
       <div className={cn(
-        "flex h-12 w-12 items-center justify-center rounded-xl transition-colors",
+        "flex h-8 w-8 items-center justify-center rounded-lg transition-colors shadow-sm",
         connected ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-400"
       )}>
-        {connected ? <ShieldCheck className="h-6 w-6" /> : <WalletIcon className="h-6 w-6" />}
+        {connected ? <ShieldCheck className="h-4 w-4" /> : <WalletIcon className="h-4 w-4" />}
       </div>
       
-      <div className="flex-1">
-        <div className="flex items-center gap-2">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Merchant Wallet</p>
-          {connected && (
-            <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          )}
-        </div>
-        <p className="text-sm font-black text-slate-900 tracking-tight">
-          {readyToRenderWalletState ? addressLabel : "Checking..."}
+      <div className="hidden sm:block">
+        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 leading-none mb-1">
+          {connected ? "Identity Verified" : "Account"}
+        </p>
+        <p className="text-[11px] font-bold text-slate-900 tracking-tight leading-none">
+          {readyToRenderWalletState ? addressLabel : "..."}
         </p>
       </div>
 
-      <div className="relative">
+      <div className="relative ml-2">
         {mounted && (
           <WalletMultiButton
             className={cn(
-              "!h-10 !rounded-xl !px-4 !text-xs !font-bold !uppercase !tracking-widest !transition-all",
+              "!h-8 !rounded-lg !px-3 !text-[10px] !font-black !uppercase !tracking-widest !transition-all !border-none !shadow-none",
               connected 
-                ? "!bg-white !text-slate-900 !border !border-emerald-100 hover:!bg-emerald-50" 
+                ? "!bg-transparent !text-emerald-600 hover:!bg-emerald-100/50" 
                 : "!bg-slate-900 !text-white hover:!bg-slate-800"
             )}
           />
@@ -71,9 +68,8 @@ export function WalletStatus() {
       </div>
 
       {readyToRenderWalletState && !connected && !hasDetectedWallet && (
-        <div className="absolute -bottom-2 right-4 flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 border border-amber-100 shadow-sm">
-          <AlertCircle className="h-3 w-3 text-amber-500" />
-          <span className="text-[9px] font-bold text-amber-600 uppercase">No Wallet Found</span>
+        <div className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-white shadow-sm ring-2 ring-white">
+          <AlertCircle className="h-2.5 w-2.5" />
         </div>
       )}
     </div>
