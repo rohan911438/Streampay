@@ -1,8 +1,16 @@
 import { NextResponse } from "next/server";
+import {
+  createPendingSubscription,
+  findOrCreateUserByWallet,
+  isLikelySolanaWalletAddress,
+  recordSubscriptionEvent,
+  resolveCheckoutPlan,
+} from "@/lib/subscriptions-db";
 
 type CreateCheckoutRequestBody = {
   email?: string;
   name?: string;
+  walletAddress?: string;
 };
 
 type DodoCheckoutResponse = {
@@ -62,6 +70,7 @@ export async function POST(req: Request) {
 
   const email = body.email?.trim();
   const name = body.name?.trim();
+  const walletAddress = body.walletAddress?.trim();
 
   if (!email || !isValidEmail(email)) {
     return NextResponse.json({ error: "A valid email is required." }, { status: 400 });
@@ -71,12 +80,36 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "A valid name is required." }, { status: 400 });
   }
 
+  if (!walletAddress || !isLikelySolanaWalletAddress(walletAddress)) {
+    return NextResponse.json({ error: "A valid wallet address is required." }, { status: 400 });
+  }
+
+  let userId: string;
+  let pendingSubscriptionId: string;
+
+  try {
+    const user = await findOrCreateUserByWallet(walletAddress);
+    const plan = await resolveCheckoutPlan(DODO_SUBSCRIPTION_PRODUCT_ID);
+    const pendingSubscription = await createPendingSubscription(user.id, plan);
+
+    userId = user.id;
+    pendingSubscriptionId = pendingSubscription.id;
+  } catch (error) {
+    console.error("[create-checkout] failed to prepare subscription", error);
+    return NextResponse.json({ error: "Failed to initialize subscription." }, { status: 500 });
+  }
+
   const checkoutPayload = {
     mode: "test",
     product_id: DODO_SUBSCRIPTION_PRODUCT_ID,
     customer: {
       email,
       name,
+    },
+    metadata: {
+      internal_subscription_id: pendingSubscriptionId,
+      wallet_address: walletAddress,
+      user_id: userId,
     },
     ...(DODO_SUCCESS_URL ? { success_url: DODO_SUCCESS_URL } : {}),
     ...(DODO_CANCEL_URL ? { cancel_url: DODO_CANCEL_URL } : {}),
@@ -115,6 +148,15 @@ export async function POST(req: Request) {
   }
 
   if (!upstreamResponse.ok) {
+    await recordSubscriptionEvent({
+      userId,
+      subscriptionId: pendingSubscriptionId,
+      eventType: "payment_failed",
+      payload: {
+        reason: "checkout_provider_rejected",
+      },
+    });
+
     return NextResponse.json(
       { error: "Payment provider rejected the checkout session request." },
       { status: 502 }
@@ -130,5 +172,15 @@ export async function POST(req: Request) {
     );
   }
 
-  return NextResponse.json({ checkout_url: checkoutUrl }, { status: 200 });
+  await recordSubscriptionEvent({
+    userId,
+    subscriptionId: pendingSubscriptionId,
+    eventType: "subscription_created",
+    payload: {
+      checkout_url: checkoutUrl,
+      provider: "dodo",
+    },
+  });
+
+  return NextResponse.json({ checkout_url: checkoutUrl, subscription_id: pendingSubscriptionId }, { status: 200 });
 }

@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@paystream/db": "*",
     "@solana/wallet-adapter-backpack": "^0.1.14",
     "@solana/wallet-adapter-base": "^0.9.23",
     "@solana/wallet-adapter-phantom": "^0.9.28",

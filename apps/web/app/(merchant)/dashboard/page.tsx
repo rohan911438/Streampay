@@ -1,4 +1,8 @@
-import { getDodoWebhookSnapshot } from "@/lib/dodo-webhook-state";
+import {
+  getDashboardMetrics,
+  getDashboardRecentEvents,
+  getDashboardSubscriptionSnapshots,
+} from "@/lib/subscriptions-db";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +21,16 @@ import {
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
+
+function formatWalletLabel(walletAddress: string | null): string {
+  if (!walletAddress) return "Unknown wallet";
+  if (walletAddress.length <= 12) return walletAddress;
+  return `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}`;
+}
+
+function formatUsdc(value: number): string {
+  return `${value.toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC`;
+}
 
 const MetricCard = ({ label, value, icon: Icon, trend }: { label: string, value: string, icon: any, trend?: string }) => (
   <Card className="group relative overflow-hidden border-slate-200/60 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/50">
@@ -38,8 +52,12 @@ const MetricCard = ({ label, value, icon: Icon, trend }: { label: string, value:
   </Card>
 );
 
-export default function DashboardPage() {
-  const webhookSnapshot = getDodoWebhookSnapshot();
+export default async function DashboardPage() {
+  const [metrics, recentEvents, subscriptionSnapshots] = await Promise.all([
+    getDashboardMetrics(),
+    getDashboardRecentEvents(6),
+    getDashboardSubscriptionSnapshots(6),
+  ]);
 
   return (
     <div className="space-y-10">
@@ -59,9 +77,9 @@ export default function DashboardPage() {
 
       {/* Metrics Grid */}
       <div className="grid gap-6 md:grid-cols-3">
-        <MetricCard label="Active Plans" value="3" icon={Layers} trend="+1" />
-        <MetricCard label="Subscribers" value="24" icon={Users} trend="+12.4%" />
-        <MetricCard label="Monthly Revenue" value="1,240 USDC" icon={DollarSign} trend="+8.2%" />
+        <MetricCard label="Active Plans" value={metrics.activePlans.toString()} icon={Layers} />
+        <MetricCard label="Subscribers" value={metrics.totalSubscribers.toString()} icon={Users} />
+        <MetricCard label="Monthly Revenue" value={formatUsdc(metrics.monthlyRevenueUsdc)} icon={DollarSign} />
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_0.5fr]">
@@ -78,9 +96,9 @@ export default function DashboardPage() {
               </Button>
             </CardHeader>
             <CardContent className="pt-6">
-              {webhookSnapshot.latestEvents.length > 0 ? (
+              {recentEvents.length > 0 ? (
                 <div className="space-y-4">
-                  {webhookSnapshot.latestEvents.slice(0, 4).map((event) => (
+                  {recentEvents.slice(0, 4).map((event) => (
                     <div key={event.id} className="group relative flex items-start gap-4 rounded-2xl border border-slate-100 bg-slate-50/30 p-4 transition-all hover:bg-white hover:shadow-md hover:shadow-slate-100">
                       <div className="h-10 w-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors">
                         <Zap className="h-5 w-5" />
@@ -90,16 +108,21 @@ export default function DashboardPage() {
                           <p className="text-sm font-bold text-slate-900">{event.eventType}</p>
                           <span className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                             <Clock className="h-3 w-3" />
-                            {new Date(event.receivedAt).toLocaleTimeString()}
+                            {new Date(event.occurredAt).toLocaleTimeString()}
                           </span>
                         </div>
                         <p className="text-xs text-slate-500 font-medium">
-                          {event.customerEmail ?? "Unknown customer"}
+                          {formatWalletLabel(event.walletAddress)}
                         </p>
                         <div className="flex items-center gap-2 pt-2">
                            <span className="px-2 py-0.5 rounded-md bg-white border border-slate-100 text-[9px] font-black uppercase text-slate-400">
                              ID: {event.id.slice(0, 8)}...
                            </span>
+                           {event.amountUsdc !== null && (
+                             <span className="px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-100 text-[9px] font-black uppercase text-emerald-600">
+                               {formatUsdc(event.amountUsdc)}
+                             </span>
+                           )}
                         </div>
                       </div>
                     </div>
@@ -123,17 +146,17 @@ export default function DashboardPage() {
               <CardDescription>Consolidated state for active user subscriptions.</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
-              {webhookSnapshot.subscriptions.length > 0 ? (
+              {subscriptionSnapshots.length > 0 ? (
                 <div className="divide-y divide-slate-100">
-                  {webhookSnapshot.subscriptions.slice(0, 5).map((sub) => (
-                    <div key={sub.recordKey} className="flex items-center justify-between p-6 hover:bg-slate-50/50 transition-colors">
+                  {subscriptionSnapshots.slice(0, 5).map((sub) => (
+                    <div key={sub.subscriptionId} className="flex items-center justify-between p-6 hover:bg-slate-50/50 transition-colors">
                       <div className="flex items-center gap-4">
                         <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-400 text-xs">
-                          {sub.customerEmail?.[0].toUpperCase() ?? "S"}
+                          {sub.walletAddress.slice(0, 1).toUpperCase()}
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-slate-900">{sub.customerEmail ?? "System Sub"}</p>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{sub.subscriptionId ?? "PENDING"}</p>
+                          <p className="text-sm font-bold text-slate-900">{formatWalletLabel(sub.walletAddress)}</p>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{sub.subscriptionId}</p>
                         </div>
                       </div>
                       <div className="text-right">

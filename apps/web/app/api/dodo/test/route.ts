@@ -1,4 +1,13 @@
 import { NextResponse } from 'next/server';
+import {
+  createPendingSubscription,
+  findOrCreateUserByWallet,
+  isLikelySolanaWalletAddress,
+  recordSubscriptionEvent,
+  resolveCheckoutPlan,
+  updateSubscriptionStatus,
+  findLatestSubscriptionIdForUser,
+} from '@/lib/subscriptions-db';
 
 /**
  * Test API route to verify Dodo Payments integration.
@@ -103,6 +112,76 @@ export async function GET() {
         success: false, 
         error: error.message || 'An unexpected error occurred' 
       },
+      { status: 500 }
+    );
+  }
+}
+
+type SimulatePaymentRequestBody = {
+  walletAddress?: string;
+  amountUsdc?: number;
+  status?: 'success' | 'failed';
+};
+
+export async function POST(req: Request) {
+  let body: SimulatePaymentRequestBody;
+
+  try {
+    body = (await req.json()) as SimulatePaymentRequestBody;
+  } catch {
+    return NextResponse.json({ success: false, error: 'Invalid JSON payload.' }, { status: 400 });
+  }
+
+  const walletAddress = body.walletAddress?.trim();
+  const amountUsdc = typeof body.amountUsdc === 'number' && Number.isFinite(body.amountUsdc) ? body.amountUsdc : 49;
+  const status = body.status === 'failed' ? 'failed' : 'success';
+
+  if (!walletAddress || !isLikelySolanaWalletAddress(walletAddress)) {
+    return NextResponse.json({ success: false, error: 'A valid wallet address is required.' }, { status: 400 });
+  }
+
+  try {
+    const user = await findOrCreateUserByWallet(walletAddress);
+
+    let subscriptionId = await findLatestSubscriptionIdForUser(user.id);
+
+    if (!subscriptionId) {
+      const plan = await resolveCheckoutPlan(process.env.DODO_SUBSCRIPTION_PRODUCT_ID);
+      const pendingSubscription = await createPendingSubscription(user.id, plan);
+      subscriptionId = pendingSubscription.id;
+    }
+
+    await recordSubscriptionEvent({
+      userId: user.id,
+      subscriptionId,
+      amountUsdc,
+      eventType: status === 'success' ? 'payment_success' : 'payment_failed',
+      providerEventId: `sim_${Date.now()}`,
+      payload: {
+        source: 'simulation',
+        walletAddress,
+        amountUsdc,
+      },
+    });
+
+    if (status === 'success') {
+      await updateSubscriptionStatus({
+        subscriptionId,
+        status: 'active',
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      walletAddress,
+      subscriptionId,
+      status,
+      amountUsdc,
+    });
+  } catch (error) {
+    console.error('[dodo-test] payment simulation failed', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to simulate payment event.' },
       { status: 500 }
     );
   }

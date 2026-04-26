@@ -104,6 +104,48 @@ Behavior:
 - Updates the in-memory subscription snapshot used by the merchant dashboard.
 - Returns a small acknowledgement payload after the event is recorded.
 
+## Database Schema (StreamPay)
+
+Implemented SQL schema file:
+
+- `db/001_streampay_schema.sql`
+
+It includes these tables with foreign keys and indexes:
+
+- `users` (wallet-based identity)
+- `plans` (pricing + Dodo product mapping)
+- `subscriptions` (user-to-plan records)
+- `subscription_events` (payments + webhook/event logging)
+
+Apply it to your Postgres database:
+
+```bash
+psql "$DATABASE_URL" -f db/001_streampay_schema.sql
+```
+
+## Database Connection Layer
+
+Reusable database client package:
+
+- `packages/db/src/index.ts`
+
+It exports a centralized Postgres connection and helpers:
+
+- `db.query(sql, params)`
+- `db.insert(table, values)`
+- `db.update(table, values, whereClause, whereParams)`
+- `db.withTransaction(callback)`
+
+Example usage from a server route/service:
+
+```ts
+import { db } from "@paystream/db";
+
+const users = await db.query("SELECT id, wallet_address FROM users WHERE wallet_address = $1", [walletAddress]);
+```
+
+This layer reads `DATABASE_URL` from environment variables and must only be used server-side.
+
 ## How To Run Locally
 
 ### 1) Install dependencies

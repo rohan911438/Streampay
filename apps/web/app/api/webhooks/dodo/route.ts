@@ -1,6 +1,14 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { NextResponse } from "next/server";
 import { recordDodoWebhookEvent } from "@/lib/dodo-webhook-state";
+import {
+  findOrCreateUserByWallet,
+  isLikelySolanaWalletAddress,
+  findUserIdBySubscriptionId,
+  findLatestSubscriptionIdForUser,
+  recordSubscriptionEvent,
+  updateSubscriptionStatus,
+} from "@/lib/subscriptions-db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -97,6 +105,90 @@ function extractIdentifiers(payload: WebhookPayload) {
   return { subscriptionId, customerEmail, paymentId };
 }
 
+function extractWalletAddress(payload: WebhookPayload): string | null {
+  const walletAddress =
+    readString(payload.data?.wallet_address) ??
+    readString(payload.data?.walletAddress) ??
+    readString(payload.data?.metadata && (payload.data.metadata as Record<string, unknown>).wallet_address) ??
+    readString(payload.data?.metadata && (payload.data.metadata as Record<string, unknown>).walletAddress) ??
+    readString(payload.subscription?.wallet_address) ??
+    null;
+
+  if (!walletAddress) return null;
+  return isLikelySolanaWalletAddress(walletAddress) ? walletAddress : null;
+}
+
+function extractInternalSubscriptionId(payload: WebhookPayload): string | null {
+  return (
+    readString(payload.data?.internal_subscription_id) ??
+    readString(payload.data?.internalSubscriptionId) ??
+    readString(payload.data?.metadata && (payload.data.metadata as Record<string, unknown>).internal_subscription_id) ??
+    readString(payload.data?.metadata && (payload.data.metadata as Record<string, unknown>).internalSubscriptionId) ??
+    null
+  );
+}
+
+function extractAmountUsdc(payload: WebhookPayload): number | null {
+  const amountCandidate =
+    payload.data?.amount ??
+    payload.data?.amount_usdc ??
+    payload.payment?.amount ??
+    payload.payment?.amount_usdc;
+
+  if (typeof amountCandidate === "number" && Number.isFinite(amountCandidate)) {
+    return amountCandidate;
+  }
+
+  if (typeof amountCandidate === "string") {
+    const parsed = Number(amountCandidate);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
+}
+
+function mapEventTypeToStatus(eventType: string): "active" | "pending" | "canceled" | null {
+  if (eventType === "payment.succeeded" || eventType === "subscription.active" || eventType === "subscription.renewed") {
+    return "active";
+  }
+
+  if (eventType === "payment.failed") {
+    return "pending";
+  }
+
+  if (eventType === "subscription.canceled") {
+    return "canceled";
+  }
+
+  return null;
+}
+
+function mapEventTypeToLogType(eventType: string):
+  | "payment_success"
+  | "payment_failed"
+  | "webhook_received"
+  | "webhook_processed"
+  | "subscription_created"
+  | "subscription_canceled" {
+  if (eventType === "payment.succeeded" || eventType === "subscription.renewed") {
+    return "payment_success";
+  }
+
+  if (eventType === "payment.failed") {
+    return "payment_failed";
+  }
+
+  if (eventType === "subscription.active") {
+    return "subscription_created";
+  }
+
+  if (eventType === "subscription.canceled") {
+    return "subscription_canceled";
+  }
+
+  return "webhook_processed";
+}
+
 export async function POST(req: Request) {
   if (!DODO_WEBHOOK_SECRET) {
     return NextResponse.json({ error: "Webhook secret is not configured." }, { status: 500 });
@@ -130,6 +222,9 @@ export async function POST(req: Request) {
   }
 
   const identifiers = extractIdentifiers(payload);
+  const walletAddress = extractWalletAddress(payload);
+  const internalSubscriptionId = extractInternalSubscriptionId(payload);
+  const amountUsdc = extractAmountUsdc(payload);
 
   const recordedEvent = recordDodoWebhookEvent({
     eventType,
@@ -145,6 +240,47 @@ export async function POST(req: Request) {
     customerEmail: recordedEvent.customerEmail,
     paymentId: recordedEvent.paymentId,
   });
+
+  try {
+    let userId: string | null = null;
+    let subscriptionId: string | null = internalSubscriptionId ?? identifiers.subscriptionId ?? null;
+
+    if (walletAddress) {
+      const user = await findOrCreateUserByWallet(walletAddress);
+      userId = user.id;
+    }
+
+    if (!userId && subscriptionId) {
+      userId = await findUserIdBySubscriptionId(subscriptionId);
+    }
+
+    if (userId && !subscriptionId) {
+      subscriptionId = await findLatestSubscriptionIdForUser(userId);
+    }
+
+    if (userId) {
+      await recordSubscriptionEvent({
+        userId,
+        subscriptionId,
+        amountUsdc,
+        eventType: mapEventTypeToLogType(eventType),
+        providerEventId: identifiers.paymentId,
+        payload,
+      });
+
+      const nextStatus = mapEventTypeToStatus(eventType);
+
+      if (nextStatus && subscriptionId) {
+        await updateSubscriptionStatus({
+          subscriptionId,
+          status: nextStatus,
+        });
+      }
+    }
+  } catch (error) {
+    console.error("[dodo-webhook] failed to persist event", error);
+    return NextResponse.json({ error: "Failed to persist webhook event." }, { status: 500 });
+  }
 
   return NextResponse.json(
     {

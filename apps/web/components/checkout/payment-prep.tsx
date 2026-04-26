@@ -78,6 +78,7 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
         body: JSON.stringify({
           name: customerName.trim(),
           email: customerEmail.trim(),
+          walletAddress: publicKey?.toBase58() ?? null,
         }),
       });
 
