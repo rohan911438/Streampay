@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { 
   BarChart3, 
   TrendingUp, 
@@ -88,6 +88,16 @@ const StatCard = ({ label, value, icon: Icon, trend, trendValue }: { label: stri
 // --- Page ---
 
 export default function AnalyticsPage() {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return <div className="h-screen w-full animate-pulse bg-slate-50/50" />;
+  }
+
   return (
     <div className="space-y-10">
       {/* Header */}

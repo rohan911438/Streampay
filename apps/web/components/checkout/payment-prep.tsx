@@ -4,8 +4,18 @@ import { useEffect, useMemo, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletReadyState } from "@solana/wallet-adapter-base";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { 
+  ShieldCheck, 
+  CreditCard, 
+  Zap, 
+  Wallet, 
+  ArrowRight, 
+  Info,
+  CheckCircle2
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 type PaymentPrepProps = {
   isDemo?: boolean;
@@ -19,8 +29,8 @@ type CreateCheckoutResponse = {
 export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
   const [mounted, setMounted] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [customerName, setCustomerName] = useState("Demo Subscriber");
-  const [customerEmail, setCustomerEmail] = useState("demo@paystream.app");
+  const [customerName, setCustomerName] = useState("Demo User");
+  const [customerEmail, setCustomerEmail] = useState("demo@example.com");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { connected, publicKey, wallets } = useWallet();
 
@@ -40,46 +50,20 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
 
   const readyToRenderWalletState = mounted;
 
-  const statusText = useMemo(() => {
-    if (!readyToRenderWalletState) {
-      return "Checking wallet...";
-    }
-
-    if (connected && publicKey) {
-      return "Wallet connected";
-    }
-
-    if (!hasDetectedWallet) {
-      return "No compatible wallet extension detected";
-    }
-
-    return "Wallet not connected";
-  }, [connected, publicKey, hasDetectedWallet, readyToRenderWalletState]);
-
-  const shortKey = useMemo(() => {
-    if (!publicKey) {
-      return null;
-    }
-
-    const base58 = publicKey.toBase58();
-    return `${base58.slice(0, 4)}...${base58.slice(-4)}`;
-  }, [publicKey]);
+  const addressLabel = connected
+    ? publicKey?.toBase58().slice(0, 6) + "..." + publicKey?.toBase58().slice(-6)
+    : "Wallet not connected";
 
   async function onCheckoutClick() {
     setActionError(null);
 
     if (!connected) {
-      setActionError("Connect your wallet before continuing.");
+      setActionError("Please connect your wallet first.");
       return;
     }
 
-    if (!customerName.trim()) {
-      setActionError("Please enter your name.");
-      return;
-    }
-
-    if (!customerEmail.trim()) {
-      setActionError("Please enter your email.");
+    if (!customerName.trim() || !customerEmail.trim()) {
+      setActionError("Please provide your contact details.");
       return;
     }
 
@@ -100,92 +84,158 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
       const data = (await response.json()) as CreateCheckoutResponse;
 
       if (!response.ok || !data.checkout_url) {
-        setActionError(data.error ?? "Unable to create checkout session. Try again.");
+        setActionError(data.error ?? "Checkout creation failed. Please try again.");
         return;
       }
 
       window.location.assign(data.checkout_url);
     } catch {
-      setActionError("Checkout request failed. Please try again.");
+      setActionError("A network error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardDescription>Step 1</CardDescription>
-        <CardTitle>Connect wallet to continue</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
-          <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Connection status</p>
-          <p className="mt-2 text-sm font-medium text-slate-900">{statusText}</p>
+    <Card className="border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.1)] overflow-hidden">
+      {/* Plan Header */}
+      <div className="bg-slate-900 p-8 text-white">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/80">
+            Selected Plan
+          </div>
+          <Zap className="h-5 w-5 text-primary" />
+        </div>
+        <div className="space-y-1">
+          <h3 className="text-3xl font-black tracking-tight uppercase">Starter Pro</h3>
+          <div className="flex items-baseline gap-2">
+            <span className="text-4xl font-black tracking-tighter">$49.00</span>
+            <span className="text-sm font-bold text-white/40 uppercase tracking-widest">/ Month</span>
+          </div>
+        </div>
+      </div>
 
-          {connected && publicKey ? (
-            <div className="mt-3 space-y-1">
-              <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Public key</p>
-              <p className="break-all font-mono text-sm text-slate-900">{publicKey.toBase58()}</p>
-              <p className="text-xs text-slate-500">Short key: {shortKey}</p>
+      <CardContent className="p-8 space-y-8">
+        {/* Wallet Section */}
+        <div className={cn(
+          "flex items-center justify-between p-4 rounded-2xl border transition-all duration-300",
+          connected ? "border-emerald-100 bg-emerald-50/50" : "border-slate-100 bg-slate-50/30"
+        )}>
+          <div className="flex items-center gap-4">
+            <div className={cn(
+              "h-10 w-10 rounded-xl flex items-center justify-center transition-colors",
+              connected ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-400"
+            )}>
+              {connected ? <ShieldCheck className="h-5 w-5" /> : <Wallet className="h-5 w-5" />}
             </div>
-          ) : null}
-
-          {!connected && readyToRenderWalletState && !hasDetectedWallet ? (
-            <p className="mt-3 text-sm text-amber-700">
-              No compatible Solana wallet extension detected. Install Phantom, Solflare, or Backpack,
-              then refresh.
-            </p>
-          ) : null}
-
-          {actionError ? <p className="mt-3 text-sm text-red-600">{actionError}</p> : null}
-        </div>
-
-        <div className="grid gap-3 md:grid-cols-2">
-          <label className="space-y-1">
-            <span className="text-xs uppercase tracking-[0.2em] text-slate-500">Name</span>
-            <input
-              type="text"
-              value={customerName}
-              onChange={(event) => setCustomerName(event.target.value)}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none ring-slate-300 transition focus:ring-2"
-              placeholder="Subscriber name"
-              disabled={isSubmitting}
-              autoComplete="name"
-            />
-          </label>
-
-          <label className="space-y-1">
-            <span className="text-xs uppercase tracking-[0.2em] text-slate-500">Email</span>
-            <input
-              type="email"
-              value={customerEmail}
-              onChange={(event) => setCustomerEmail(event.target.value)}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none ring-slate-300 transition focus:ring-2"
-              placeholder="subscriber@example.com"
-              disabled={isSubmitting}
-              autoComplete="email"
-            />
-          </label>
-        </div>
-
-        <div className="flex flex-wrap gap-3">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Connection Status</p>
+              <p className="text-xs font-black text-slate-900 tracking-tight">
+                {readyToRenderWalletState ? addressLabel : "Initializing..."}
+              </p>
+            </div>
+          </div>
           {readyToRenderWalletState && (
-            <WalletMultiButton
-              className="!h-10 !rounded-md !bg-slate-950 !px-4 !text-sm !font-medium !text-white hover:!bg-slate-800"
+            <WalletMultiButton 
+              className={cn(
+                "!h-9 !rounded-lg !px-4 !text-[10px] !font-bold !uppercase !tracking-widest !transition-all",
+                connected 
+                  ? "!bg-white !text-slate-900 !border !border-emerald-100 hover:!bg-emerald-100" 
+                  : "!bg-slate-900 !text-white hover:!bg-slate-800"
+              )}
             />
           )}
-
-          <Button type="button" disabled={!connected || isSubmitting} onClick={() => void onCheckoutClick()}>
-            {isSubmitting ? "Redirecting..." : isDemo ? "Subscribe" : "Pay"}
-          </Button>
         </div>
 
-        <p className="text-sm text-slate-600">
-          Checkout is securely created by the backend, then you are redirected to Dodo's hosted
-          checkout page.
-        </p>
+        {/* Form Fields */}
+        <div className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Full Name</label>
+              <input 
+                type="text" 
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                disabled={isSubmitting}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm font-semibold focus:border-primary focus:outline-none transition-colors"
+                placeholder="Your Name"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Email Address</label>
+              <input 
+                type="email" 
+                value={customerEmail}
+                onChange={(e) => setCustomerEmail(e.target.value)}
+                disabled={isSubmitting}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm font-semibold focus:border-primary focus:outline-none transition-colors"
+                placeholder="name@example.com"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* CTA Button */}
+        <div className="space-y-4 pt-2">
+          {actionError && (
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-xs font-bold">
+              <Info className="h-4 w-4" />
+              {actionError}
+            </div>
+          )}
+          
+          <Button 
+            onClick={onCheckoutClick}
+            disabled={!connected || isSubmitting}
+            className="w-full h-16 rounded-2xl bg-slate-900 text-white text-lg font-black uppercase tracking-[0.2em] shadow-2xl shadow-slate-200 hover:bg-slate-800 hover:-translate-y-1 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none"
+          >
+            {isSubmitting ? (
+              <>
+                <RefreshCw className="h-6 w-6 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                Subscribe Now
+                <ArrowRight className="h-6 w-6" />
+              </>
+            )}
+          </Button>
+          
+          <div className="flex flex-col items-center gap-2">
+             <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                Automatic monthly renewals on-chain
+             </div>
+             <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-slate-300">
+                Secure checkout powered by Dodo Payments
+             </div>
+          </div>
+        </div>
       </CardContent>
     </Card>
+  );
+}
+
+// Separate component for RefreshCw to avoid build error
+function RefreshCw(props: any) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+      <path d="M21 3v5h-5" />
+      <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+      <path d="M3 21v-5h5" />
+    </svg>
   );
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { type ReactNode, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { LayoutDashboard, CreditCard, BarChart3, Rocket } from "lucide-react";
 
@@ -19,6 +19,15 @@ export default function MerchantLayout({
   children: ReactNode;
 }>) {
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <div className="min-h-screen bg-slate-50/50" />;
+  }
 
   return (
     <div className="min-h-screen bg-slate-50/50">

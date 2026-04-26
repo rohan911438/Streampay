@@ -58,14 +58,16 @@ export function WalletStatus() {
       </div>
 
       <div className="relative">
-        <WalletMultiButton
-          className={cn(
-            "!h-10 !rounded-xl !px-4 !text-xs !font-bold !uppercase !tracking-widest !transition-all",
-            connected 
-              ? "!bg-white !text-slate-900 !border !border-emerald-100 hover:!bg-emerald-50" 
-              : "!bg-slate-900 !text-white hover:!bg-slate-800"
-          )}
-        />
+        {mounted && (
+          <WalletMultiButton
+            className={cn(
+              "!h-10 !rounded-xl !px-4 !text-xs !font-bold !uppercase !tracking-widest !transition-all",
+              connected 
+                ? "!bg-white !text-slate-900 !border !border-emerald-100 hover:!bg-emerald-50" 
+                : "!bg-slate-900 !text-white hover:!bg-slate-800"
+            )}
+          />
+        )}
       </div>
 
       {readyToRenderWalletState && !connected && !hasDetectedWallet && (

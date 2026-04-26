@@ -158,7 +158,9 @@ export default function LandingPage() {
           </nav>
 
           <div className="flex items-center gap-4">
-            <WalletMultiButton className="!h-11 !rounded-xl !bg-primary !px-5 !text-sm !font-semibold !text-primary-foreground hover:!bg-primary/90 !transition-all shadow-md active:scale-95" />
+            {isMounted && (
+              <WalletMultiButton className="!h-11 !rounded-xl !bg-primary !px-5 !text-sm !font-semibold !text-primary-foreground hover:!bg-primary/90 !transition-all shadow-md active:scale-95" />
+            )}
           </div>
         </div>
       </header>
@@ -189,7 +191,9 @@ export default function LandingPage() {
                       <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
                   ) : (
-                    <WalletMultiButton className="!h-14 !rounded-2xl !bg-primary !px-8 !text-lg !font-bold !text-primary-foreground hover:!bg-primary/90 !transition-all shadow-xl shadow-primary/20 hover:-translate-y-1 active:scale-95" />
+                    isMounted && (
+                      <WalletMultiButton className="!h-14 !rounded-2xl !bg-primary !px-8 !text-lg !font-bold !text-primary-foreground hover:!bg-primary/90 !transition-all shadow-xl shadow-primary/20 hover:-translate-y-1 active:scale-95" />
+                    )
                   )}
                   <a 
                     href="#how-it-works"
