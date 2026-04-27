@@ -11,8 +11,51 @@
       "createdAt": "2026-04-27T04:11:59.343Z"
     }
   ],
-  "users": [],
-  "subscriptions": [],
-  "checkoutSessions": [],
-  "subscriptionEvents": []
+  "users": [
+    {
+      "id": "026b0da5-1acc-41d8-b002-2b5f1b8462a1",
+      "walletAddress": "A8AYXz5Cx74E3fFKBn2oSo1SSBTA9ftseiv4bwsS8P9D",
+      "createdAt": "2026-04-27T04:16:54.730Z"
+    }
+  ],
+  "subscriptions": [
+    {
+      "id": "602d802e-16fb-4be4-b7eb-a4bf55829f50",
+      "userId": "026b0da5-1acc-41d8-b002-2b5f1b8462a1",
+      "planId": "5a9b4523-36ca-40bd-9a3f-a4bdc0530e1a",
+      "status": "pending",
+      "currentPeriodStart": null,
+      "currentPeriodEnd": null,
+      "billingDate": 27,
+      "createdAt": "2026-04-27T04:17:20.931Z",
+      "updatedAt": "2026-04-27T04:17:20.931Z"
+    }
+  ],
+  "checkoutSessions": [
+    {
+      "id": "20612c89-23e0-4117-b927-da6b36121a28",
+      "userId": "026b0da5-1acc-41d8-b002-2b5f1b8462a1",
+      "planId": "5a9b4523-36ca-40bd-9a3f-a4bdc0530e1a",
+      "subscriptionId": "602d802e-16fb-4be4-b7eb-a4bf55829f50",
+      "checkoutSessionId": "e217f5ae-8967-44ad-b870-995223b67442",
+      "status": "pending",
+      "createdAt": "2026-04-27T04:17:20.934Z",
+      "updatedAt": "2026-04-27T04:17:20.934Z",
+      "completedAt": null
+    }
+  ],
+  "subscriptionEvents": [
+    {
+      "id": "e057bbc8-0e13-46de-964a-4dfff53b2b95",
+      "subscriptionId": "602d802e-16fb-4be4-b7eb-a4bf55829f50",
+      "eventType": "subscription_created",
+      "amountUsdc": 10,
+      "metadata": {
+        "email": "123131rkorohan@gmail.com",
+        "name": "ROHAN",
+        "walletAddress": "A8AYXz5Cx74E3fFKBn2oSo1SSBTA9ftseiv4bwsS8P9D"
+      },
+      "createdAt": "2026-04-27T04:17:20.938Z"
+    }
+  ]
 }

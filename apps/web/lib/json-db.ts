@@ -90,9 +90,33 @@ async function writeDb(data: DataStore) {
 }
 
 export const jsonDb = {
+  async getState(): Promise<DataStore> {
+    return readDb();
+  },
+
   async listPlans(): Promise<Plan[]> {
     const db = await readDb();
     return db.plans;
+  },
+
+  async listUsers(): Promise<User[]> {
+    const db = await readDb();
+    return db.users;
+  },
+
+  async listSubscriptions(): Promise<Subscription[]> {
+    const db = await readDb();
+    return db.subscriptions;
+  },
+
+  async listSubscriptionEvents(): Promise<SubscriptionEvent[]> {
+    const db = await readDb();
+    return db.subscriptionEvents;
+  },
+
+  async listCheckoutSessions(): Promise<CheckoutSession[]> {
+    const db = await readDb();
+    return db.checkoutSessions;
   },
 
   async createPlan(input: {
@@ -138,6 +162,21 @@ export const jsonDb = {
     const subs = db.subscriptions.filter((s) => s.userId === userId);
     if (subs.length === 0) return null;
     return subs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+  },
+
+  async findUserById(userId: string): Promise<User | null> {
+    const db = await readDb();
+    return db.users.find((user) => user.id === userId) ?? null;
+  },
+
+  async findSubscriptionById(subscriptionId: string): Promise<Subscription | null> {
+    const db = await readDb();
+    return db.subscriptions.find((subscription) => subscription.id === subscriptionId) ?? null;
+  },
+
+  async findCheckoutSessionBySubscriptionId(subscriptionId: string): Promise<CheckoutSession | null> {
+    const db = await readDb();
+    return db.checkoutSessions.find((session) => session.subscriptionId === subscriptionId) ?? null;
   },
 
   async createSubscription(input: {
@@ -202,6 +241,7 @@ export const jsonDb = {
     userId: string;
     planId: string;
     subscriptionId: string | null;
+    checkoutSessionId?: string;
   }): Promise<CheckoutSession> {
     const db = await readDb();
     const session: CheckoutSession = {
@@ -209,7 +249,7 @@ export const jsonDb = {
       userId: input.userId,
       planId: input.planId,
       subscriptionId: input.subscriptionId,
-      checkoutSessionId: randomUUID(),
+      checkoutSessionId: input.checkoutSessionId ?? randomUUID(),
       status: "pending",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
