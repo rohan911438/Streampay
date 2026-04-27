@@ -1,5 +1,5 @@
 {
-  "/api/svm/transactions/[walletAddress]/route": "app/api/svm/transactions/[walletAddress]/route.js",
+  "/api/users/sync/route": "app/api/users/sync/route.js",
   "/(merchant)/dashboard/page": "app/(merchant)/dashboard/page.js",
   "/(merchant)/analytics/page": "app/(merchant)/analytics/page.js"
 }
