@@ -95,11 +95,20 @@ function normalizeTokenBalance(item: DuneBalanceItem): NormalizedTokenBalance {
   };
 }
 
+function getDuneApiKey(): string | null {
+  const key =
+    process.env.DUNE_SIM_API_KEY?.trim() ||
+    process.env.DUNE_API_KEY?.trim() ||
+    null;
+
+  return key && key.length > 0 ? key : null;
+}
+
 export async function GET(
   req: Request,
   context: { params: { walletAddress: string } }
 ) {
-  const apiKey = process.env.DUNE_SIM_API_KEY;
+  const apiKey = getDuneApiKey();
 
   if (!apiKey) {
     return NextResponse.json(

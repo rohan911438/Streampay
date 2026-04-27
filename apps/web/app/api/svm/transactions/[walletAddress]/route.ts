@@ -26,6 +26,15 @@ type DuneTransactionItem = {
   usd_value?: number | string;
   usdValue?: number | string;
   status?: string;
+  success?: boolean;
+  amount_usd?: number | string;
+  usd?: number | string;
+  kind?: string;
+  action?: string;
+  actions?: Array<Record<string, unknown>>;
+  token_transfers?: Array<Record<string, unknown>>;
+  tokenTransfers?: Array<Record<string, unknown>>;
+  transfers?: Array<Record<string, unknown>>;
 };
 
 type NormalizedTransaction = {
@@ -116,18 +125,55 @@ function parseTransactions(payload: unknown): DuneTransactionItem[] {
 }
 
 function normalizeTransaction(item: DuneTransactionItem): NormalizedTransaction {
+  const firstTransfer =
+    item.token_transfers?.[0] ?? item.tokenTransfers?.[0] ?? item.transfers?.[0] ?? null;
+  const firstAction = item.actions?.[0] ?? null;
+
   const amount = asNumber(
-    item.ui_amount ?? item.uiAmount ?? item.amount ?? item.value ?? item.native_amount
+    item.ui_amount ??
+      item.uiAmount ??
+      item.amount ??
+      item.value ??
+      item.native_amount ??
+      firstTransfer?.amount ??
+      firstTransfer?.ui_amount ??
+      firstTransfer?.uiAmount ??
+      firstTransfer?.value
   );
-  const usdValue = asNumber(item.usd_value ?? item.usdValue);
+
+  const usdValue = asNumber(
+    item.usd_value ??
+      item.usdValue ??
+      item.amount_usd ??
+      item.usd ??
+      firstTransfer?.usd_value ??
+      firstTransfer?.usdValue ??
+      firstTransfer?.amount_usd ??
+      firstTransfer?.usd
+  );
+
+  const resolvedType =
+    item.type ??
+    item.tx_type ??
+    item.category ??
+    item.program ??
+    item.kind ??
+    item.action ??
+    firstAction?.type ??
+    firstAction?.action ??
+    firstTransfer?.type ??
+    "unknown";
+
+  const resolvedStatus =
+    item.status ?? (typeof item.success === "boolean" ? (item.success ? "success" : "failed") : "unknown");
 
   return {
     signature: (item.signature ?? item.hash ?? item.tx_hash ?? null) as string | null,
     timestamp: toIsoTimestamp(item.timestamp ?? item.block_time ?? item.time),
-    type: (item.type ?? item.tx_type ?? item.category ?? item.program ?? "unknown").toString(),
+    type: resolvedType.toString(),
     amount,
     usdValue,
-    status: (item.status ?? "unknown").toString(),
+    status: resolvedStatus.toString(),
   };
 }
 
@@ -147,11 +193,20 @@ function parseLimit(rawLimit: string | null): number {
   return integer;
 }
 
+function getDuneApiKey(): string | null {
+  const key =
+    process.env.DUNE_SIM_API_KEY?.trim() ||
+    process.env.DUNE_API_KEY?.trim() ||
+    null;
+
+  return key && key.length > 0 ? key : null;
+}
+
 export async function GET(
   req: Request,
   context: { params: { walletAddress: string } }
 ) {
-  const apiKey = process.env.DUNE_SIM_API_KEY;
+  const apiKey = getDuneApiKey();
 
   if (!apiKey) {
     return NextResponse.json(

@@ -1,63 +1,71 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
-import { 
-  BarChart3, 
-  TrendingUp, 
-  Users, 
-  DollarSign, 
-  Activity, 
-  ArrowUpRight, 
-  ArrowDownRight,
-  Calendar,
-  Filter,
-  Download,
-  CreditCard,
-  CheckCircle2
+import { useMemo, useState, useEffect, useCallback } from "react";
+import {
+  Activity,
+  AlertTriangle,
+  BarChart3,
+  DollarSign,
+  RefreshCcw,
+  Wallet,
 } from "lucide-react";
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
   ResponsiveContainer,
   AreaChart,
-  Area
+  Area,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
 } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { useWallet } from "@solana/wallet-adapter-react";
 
-// --- Mock Data ---
+type BalanceResponse = {
+  summary?: {
+    totalBalance?: number;
+    totalUsdValue?: number;
+    tokenCount?: number;
+  };
+};
 
-const revenueData = [
-  { day: "Mon", amount: 420 },
-  { day: "Tue", amount: 580 },
-  { day: "Wed", amount: 490 },
-  { day: "Thu", amount: 720 },
-  { day: "Fri", amount: 890 },
-  { day: "Sat", amount: 940 },
-  { day: "Sun", amount: 1100 },
-];
+type TransactionItem = {
+  signature: string | null;
+  timestamp: string | null;
+  type: string;
+  amount: number;
+  usdValue: number;
+  status: string;
+};
 
-const topPlans = [
-  { name: "Starter Pro", count: 142, revenue: 6958, color: "bg-blue-500" },
-  { name: "Enterprise", count: 48, revenue: 9552, color: "bg-purple-500" },
-  { name: "Annual Basic", count: 24, revenue: 11760, color: "bg-emerald-500" },
-];
+type TransactionsResponse = {
+  count?: number;
+  transactions?: TransactionItem[];
+};
 
-const recentTransactions = [
-  { id: "tx_1", user: "0x82...k4f2", amount: 49, date: "2 mins ago", status: "success" },
-  { id: "tx_2", user: "0x31...a9b1", amount: 199, date: "15 mins ago", status: "success" },
-  { id: "tx_3", user: "0x74...e2c4", amount: 49, date: "1 hour ago", status: "success" },
-  { id: "tx_4", user: "0x12...c8d5", amount: 490, date: "3 hours ago", status: "success" },
-];
+type AnalyticsData = {
+  walletBalanceUsd: number;
+  totalTransactions: number;
+  recentActivity: TransactionItem[];
+};
 
-// --- Components ---
+const EMPTY_ANALYTICS: AnalyticsData = {
+  walletBalanceUsd: 0,
+  totalTransactions: 0,
+  recentActivity: [],
+};
 
-const StatCard = ({ label, value, icon: Icon, trend, trendValue }: { label: string, value: string, icon: any, trend: 'up' | 'down', trendValue: string }) => (
+function StatCard({
+  label,
+  value,
+  icon: Icon,
+}: {
+  label: string;
+  value: string;
+  icon: typeof Activity;
+}) {
+  return (
   <Card className="border-slate-200 bg-white shadow-sm overflow-hidden group">
     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
       <CardDescription className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</CardDescription>
@@ -67,89 +75,204 @@ const StatCard = ({ label, value, icon: Icon, trend, trendValue }: { label: stri
     </CardHeader>
     <CardContent>
       <div className="text-3xl font-black tracking-tighter text-slate-900">{value}</div>
-      <div className="flex items-center gap-1.5 mt-2">
-        {trend === 'up' ? (
-          <div className="flex items-center text-emerald-600 font-bold text-[10px]">
-            <TrendingUp className="h-3 w-3 mr-0.5" />
-            {trendValue}
-          </div>
-        ) : (
-          <div className="flex items-center text-red-500 font-bold text-[10px]">
-            <ArrowDownRight className="h-3 w-3 mr-0.5" />
-            {trendValue}
-          </div>
-        )}
-        <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">vs prev period</span>
-      </div>
     </CardContent>
   </Card>
-);
+  );
+}
 
-// --- Page ---
+function formatUsd(value: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
+function formatDate(value: string | null): string {
+  if (!value) {
+    return "-";
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return "-";
+  }
+
+  return parsed.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function shortSignature(value: string | null): string {
+  if (!value || value.length < 12) {
+    return value ?? "-";
+  }
+
+  return `${value.slice(0, 6)}...${value.slice(-6)}`;
+}
+
+function toChartSeries(items: TransactionItem[]): Array<{ day: string; volume: number }> {
+  const rolling = new Map<string, number>();
+
+  for (let i = 6; i >= 0; i -= 1) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    rolling.set(key, 0);
+  }
+
+  items.forEach((tx) => {
+    if (!tx.timestamp) {
+      return;
+    }
+
+    const date = new Date(tx.timestamp);
+    if (Number.isNaN(date.getTime())) {
+      return;
+    }
+
+    const key = date.toISOString().slice(0, 10);
+    if (!rolling.has(key)) {
+      return;
+    }
+
+    rolling.set(key, (rolling.get(key) ?? 0) + tx.usdValue);
+  });
+
+  return Array.from(rolling.entries()).map(([key, volume]) => {
+    const d = new Date(`${key}T00:00:00Z`);
+    return {
+      day: d.toLocaleDateString(undefined, { weekday: "short" }),
+      volume,
+    };
+  });
+}
 
 export default function AnalyticsPage() {
-  const [isMounted, setIsMounted] = useState(false);
+  const { connected, publicKey } = useWallet();
+  const walletAddress = useMemo(() => publicKey?.toBase58() ?? null, [publicKey]);
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [data, setData] = useState<AnalyticsData>(EMPTY_ANALYTICS);
+
+  const refresh = useCallback(async () => {
+    if (!connected || !walletAddress) {
+      setData(EMPTY_ANALYTICS);
+      setError(null);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const [balanceRes, txRes] = await Promise.all([
+        fetch(`/api/svm/balances/${walletAddress}?chain=solana`, { cache: "no-store" }),
+        fetch(`/api/svm/transactions/${walletAddress}?chain=solana&limit=20`, { cache: "no-store" }),
+      ]);
+
+      const balanceJson = (await balanceRes.json()) as BalanceResponse & { error?: string };
+      const txJson = (await txRes.json()) as TransactionsResponse & { error?: string };
+
+      if (!balanceRes.ok) {
+        throw new Error(balanceJson.error ?? "Failed to fetch wallet balance.");
+      }
+
+      if (!txRes.ok) {
+        throw new Error(txJson.error ?? "Failed to fetch wallet transactions.");
+      }
+
+      setData({
+        walletBalanceUsd: balanceJson.summary?.totalUsdValue ?? 0,
+        totalTransactions: txJson.count ?? txJson.transactions?.length ?? 0,
+        recentActivity: txJson.transactions ?? [],
+      });
+    } catch (fetchError) {
+      setError(fetchError instanceof Error ? fetchError.message : "Failed to load analytics data.");
+    } finally {
+      setLoading(false);
+    }
+  }, [connected, walletAddress]);
 
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
+    void refresh();
+  }, [refresh]);
 
-  if (!isMounted) {
-    return <div className="h-screen w-full animate-pulse bg-slate-50/50" />;
-  }
+  const chartData = useMemo(() => toChartSeries(data.recentActivity), [data.recentActivity]);
+
+  const walletLabel = useMemo(() => {
+    if (!walletAddress) {
+      return "No wallet connected";
+    }
+    return `${walletAddress.slice(0, 6)}...${walletAddress.slice(-6)}`;
+  }, [walletAddress]);
 
   return (
     <div className="space-y-10">
-      {/* Header */}
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-500 text-[10px] font-black uppercase tracking-widest border border-slate-200">
             <BarChart3 className="h-3 w-3" />
-            Business Intelligence
+            Wallet Analytics
           </div>
           <h2 className="text-4xl font-black tracking-tight text-slate-900">
             Analytics
           </h2>
           <p className="max-w-xl text-sm font-medium text-slate-500 leading-relaxed">
-            Track your MRR, growth velocity, and payment performance with real-time on-chain data.
+            Real-time wallet activity powered by Dune SIM on Solana.
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="secondary" className="h-11 px-4 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-slate-400" />
-            Last 7 Days
-          </Button>
-          <Button variant="secondary" className="h-11 w-11 p-0 rounded-xl flex items-center justify-center">
-            <Download className="h-4 w-4 text-slate-400" />
+          <Button
+            variant="secondary"
+            className="h-11 px-4 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center gap-2"
+            onClick={() => void refresh()}
+            disabled={loading}
+          >
+            <RefreshCcw className="h-4 w-4 text-slate-400" />
+            {loading ? "Refreshing" : "Refresh"}
           </Button>
         </div>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid gap-6 md:grid-cols-3">
-        <StatCard label="Total Revenue" value="$28,270" icon={DollarSign} trend="up" trendValue="+12.4%" />
-        <StatCard label="Active Subs" value="214" icon={Users} trend="up" trendValue="+8.2%" />
-        <StatCard label="Tx Volume" value="1,042" icon={Activity} trend="down" trendValue="-2.1%" />
+        <StatCard label="Wallet" value={walletLabel} icon={Wallet} />
+        <StatCard label="Wallet Balance (USD)" value={formatUsd(data.walletBalanceUsd)} icon={DollarSign} />
+        <StatCard label="Total Transactions" value={String(data.totalTransactions)} icon={Activity} />
       </div>
 
-      {/* Main Chart Section */}
+      {error ? (
+        <Card className="border-red-200 bg-red-50 shadow-sm">
+          <CardContent className="pt-6 flex items-center gap-3 text-red-700">
+            <AlertTriangle className="h-5 w-5" />
+            <p className="text-sm font-semibold">{error}</p>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {!connected ? (
+        <Card className="border-slate-200 shadow-sm">
+          <CardContent className="pt-6">
+            <p className="text-sm font-semibold text-slate-700">Connect your wallet to view analytics.</p>
+          </CardContent>
+        </Card>
+      ) : null}
+
       <Card className="border-slate-200 shadow-sm overflow-hidden">
         <CardHeader className="flex flex-row items-center justify-between pb-8">
           <div className="space-y-1">
-            <CardTitle className="text-xl font-bold">Revenue Growth</CardTitle>
-            <CardDescription>Daily revenue settlements in USDC over the past week.</CardDescription>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 border border-primary/10">
-              <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-              <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Settled Revenue</span>
-            </div>
+            <CardTitle className="text-xl font-bold">7-Day Activity Trend</CardTitle>
+            <CardDescription>Daily USD value from the most recent wallet transactions.</CardDescription>
           </div>
         </CardHeader>
         <CardContent className="px-2">
           <div className="h-[350px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={revenueData}>
+              <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#0F172A" stopOpacity={0.1}/>
@@ -168,15 +291,16 @@ export default function AnalyticsPage() {
                   axisLine={false} 
                   tickLine={false} 
                   tick={{ fontSize: 10, fontWeight: 700, fill: '#94A3B8' }}
-                  tickFormatter={(val) => `$${val}`}
+                  tickFormatter={(val) => `$${Number(val).toFixed(0)}`}
                 />
                 <Tooltip 
                   contentStyle={{ borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                   labelStyle={{ fontWeight: 800, color: '#0F172A', marginBottom: '4px' }}
+                  formatter={(value) => [formatUsd(Number(value)), "Volume"]}
                 />
                 <Area 
                   type="monotone" 
-                  dataKey="amount" 
+                  dataKey="volume" 
                   stroke="#0F172A" 
                   strokeWidth={3}
                   fillOpacity={1} 
@@ -188,101 +312,46 @@ export default function AnalyticsPage() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_0.6fr]">
-        {/* Recent Transactions */}
-        <Card className="border-slate-200 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-xl font-bold">Recent Transactions</CardTitle>
-            <CardDescription>Latest payment settlements verified on Solana.</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
+      <Card className="border-slate-200 shadow-sm">
+        <CardHeader>
+          <CardTitle className="text-xl font-bold">Recent Activity</CardTitle>
+          <CardDescription>Latest transactions from your connected wallet.</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="p-6 text-sm text-slate-500">Loading latest activity...</div>
+          ) : data.recentActivity.length === 0 ? (
+            <div className="p-6 text-sm text-slate-500">No transactions found for this wallet yet.</div>
+          ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-slate-100 bg-slate-50/50">
-                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">User Wallet</th>
+                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Timestamp</th>
+                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Type</th>
                     <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Amount</th>
-                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Date</th>
+                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">USD Value</th>
                     <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
+                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Signature</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {recentTransactions.map((tx) => (
-                    <tr key={tx.id} className="group hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-[10px]">
-                            {tx.user[2].toUpperCase()}
-                          </div>
-                          <span className="text-xs font-bold text-slate-900 tracking-tight">{tx.user}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-xs font-black text-slate-900">${tx.amount}</td>
-                      <td className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase">{tx.date}</td>
-                      <td className="px-6 py-4">
-                        <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 text-[9px] font-black uppercase tracking-tighter border border-emerald-100">
-                          <CheckCircle2 className="h-3 w-3" />
-                          {tx.status}
-                        </div>
-                      </td>
+                  {data.recentActivity.map((tx, idx) => (
+                    <tr key={`${tx.signature ?? "tx"}-${idx}`} className="group hover:bg-slate-50 transition-colors">
+                      <td className="px-6 py-4 text-xs font-semibold text-slate-600">{formatDate(tx.timestamp)}</td>
+                      <td className="px-6 py-4 text-xs font-bold text-slate-900 uppercase">{tx.type}</td>
+                      <td className="px-6 py-4 text-xs font-bold text-slate-900">{tx.amount.toLocaleString()}</td>
+                      <td className="px-6 py-4 text-xs font-black text-slate-900">{formatUsd(tx.usdValue)}</td>
+                      <td className="px-6 py-4 text-xs font-semibold text-slate-600 uppercase">{tx.status}</td>
+                      <td className="px-6 py-4 text-xs font-mono text-slate-500">{shortSignature(tx.signature)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <div className="p-4 border-t border-slate-100 text-center">
-              <Button variant="secondary" className="h-9 px-6 rounded-lg text-[10px] font-black uppercase tracking-widest">
-                View Transaction Ledger
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Top Plans */}
-        <Card className="border-slate-200 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-xl font-bold">Top Performance</CardTitle>
-            <CardDescription>Most popular subscription tiers by volume.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-8">
-            {topPlans.map((plan) => (
-              <div key={plan.name} className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={cn("h-2 w-2 rounded-full", plan.color)} />
-                    <span className="text-sm font-bold text-slate-900 tracking-tight">{plan.name}</span>
-                  </div>
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{plan.count} Users</span>
-                </div>
-                <div className="relative h-2 w-full rounded-full bg-slate-100 overflow-hidden">
-                   <div 
-                    className={cn("absolute inset-y-0 left-0 rounded-full transition-all duration-1000", plan.color)} 
-                    style={{ width: `${(plan.revenue / 12000) * 100}%` }}
-                   />
-                </div>
-                <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  <span>Revenue Contribution</span>
-                  <span className="text-slate-900">${plan.revenue}</span>
-                </div>
-              </div>
-            ))}
-
-            <div className="pt-4 border-t border-slate-100">
-              <div className="rounded-2xl bg-slate-900 p-6 text-white space-y-4 shadow-xl shadow-slate-200 relative overflow-hidden">
-                 <div className="absolute top-0 right-0 h-24 w-24 bg-white/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-                 <div className="flex items-center justify-between">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Growth Tip</p>
-                    <TrendingUp className="h-4 w-4 text-emerald-400" />
-                 </div>
-                 <h4 className="text-sm font-bold leading-relaxed">Your "Enterprise" tier is growing 15% faster than last month. Consider promoting it more!</h4>
-                 <Button className="w-full h-10 rounded-xl bg-white text-black text-[10px] font-black uppercase tracking-widest hover:bg-white/90">
-                    Create Promotion
-                 </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
