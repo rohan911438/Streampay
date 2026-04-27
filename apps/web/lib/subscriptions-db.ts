@@ -148,8 +148,12 @@ async function createDodoPlanProduct(input: CreatePlanInput): Promise<string> {
       billing_interval: input.billingInterval,
       interval: input.billingInterval,
       amount: input.priceUsdc,
-      price: input.priceUsdc,
-      currency: "USDC",
+      price: {
+        type: "fixed",
+        amount: input.priceUsdc,
+        currency: "USDC",
+      },
+      tax_category: "saas",
       billing_model: "subscription",
       metadata: {
         source: "streampay",

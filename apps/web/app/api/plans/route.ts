@@ -1,9 +1,5 @@
 import { NextResponse } from "next/server";
-import {
-  createPlanWithDodo,
-  listPlans,
-  type CreatePlanInput,
-} from "@/lib/subscriptions-db";
+import { jsonDb } from "@/lib/json-db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,7 +10,7 @@ function isPositiveNumber(value: unknown): value is number {
 
 export async function GET() {
   try {
-    const plans = await listPlans();
+    const plans = await jsonDb.listPlans();
     return NextResponse.json({ plans }, { status: 200 });
   } catch (error) {
     console.error("[plans] failed to list plans", error);
@@ -23,10 +19,10 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  let body: Partial<CreatePlanInput>;
+  let body: any;
 
   try {
-    body = (await req.json()) as Partial<CreatePlanInput>;
+    body = (await req.json()) as any;
   } catch {
     return NextResponse.json({ error: "Invalid JSON payload." }, { status: 400 });
   }
@@ -49,7 +45,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const plan = await createPlanWithDodo({
+    const plan = await jsonDb.createPlan({
       name,
       priceUsdc,
       billingInterval,
@@ -64,7 +60,7 @@ export async function POST(req: Request) {
         error:
           error instanceof Error
             ? error.message
-            : "Failed to create plan and Dodo product.",
+            : "Failed to create plan.",
       },
       { status: 502 }
     );

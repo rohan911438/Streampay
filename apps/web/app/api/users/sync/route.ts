@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
-import { findOrCreateUserByWallet, isLikelySolanaWalletAddress } from "@/lib/subscriptions-db";
+import { jsonDb } from "@/lib/json-db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+function isLikelySolanaWalletAddress(value: string): boolean {
+  return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(value);
+}
 
 type SyncUserRequestBody = {
   walletAddress?: string;
@@ -24,14 +28,13 @@ export async function POST(req: Request) {
   }
 
   try {
-    const user = await findOrCreateUserByWallet(walletAddress);
+    const user = await jsonDb.findOrCreateUser(walletAddress);
 
     return NextResponse.json({
       user: {
         id: user.id,
-        walletAddress: user.wallet_address,
-        createdAt: user.created_at ?? null,
-        updatedAt: user.updated_at ?? null,
+        walletAddress: user.walletAddress,
+        createdAt: user.createdAt,
       },
     });
   } catch (error) {

@@ -1,0 +1,18 @@
+{
+  "plans": [
+    {
+      "id": "5a9b4523-36ca-40bd-9a3f-a4bdc0530e1a",
+      "name": "AMAZON",
+      "priceUsdc": 10,
+      "billingInterval": "monthly",
+      "description": "FUN",
+      "dodoProductId": null,
+      "active": true,
+      "createdAt": "2026-04-27T04:11:59.343Z"
+    }
+  ],
+  "users": [],
+  "subscriptions": [],
+  "checkoutSessions": [],
+  "subscriptionEvents": []
+}
