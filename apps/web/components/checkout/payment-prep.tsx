@@ -23,6 +23,8 @@ type PaymentPrepProps = {
 
 type CreateCheckoutResponse = {
   checkout_url?: string;
+  subscription_id?: string;
+  checkout_session_id?: string;
   error?: string;
 };
 
@@ -32,6 +34,7 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
   const [customerName, setCustomerName] = useState("Demo User");
   const [customerEmail, setCustomerEmail] = useState("demo@example.com");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isTestSimulating, setIsTestSimulating] = useState(false);
   const { connected, publicKey, wallets } = useWallet();
 
   useEffect(() => {
@@ -94,6 +97,57 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
       setActionError("A network error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function onTestSimulatePayment() {
+    setActionError(null);
+
+    if (!connected) {
+      setActionError("Please connect your wallet first.");
+      return;
+    }
+
+    setIsTestSimulating(true);
+
+    try {
+      const response = await fetch("/api/dodo/create-checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: customerName.trim() || "Test User",
+          email: customerEmail.trim() || "test@example.com",
+          walletAddress: publicKey?.toBase58() ?? null,
+        }),
+      });
+
+      const data = (await response.json()) as CreateCheckoutResponse;
+
+      if (!response.ok) {
+        setActionError(data.error ?? "Failed to initialize subscription.");
+        return;
+      }
+
+      // Redirect to success page with test mode enabled and subscription details
+      const params = new URLSearchParams({
+        test: "true",
+      });
+
+      if (data.subscription_id) {
+        params.append("subscription_id", data.subscription_id);
+      }
+
+      if (data.checkout_session_id) {
+        params.append("checkout_session_id", data.checkout_session_id);
+      }
+
+      window.location.assign(`/pay/success?${params.toString()}`);
+    } catch {
+      setActionError("A network error occurred. Please try again.");
+    } finally {
+      setIsTestSimulating(false);
     }
   }
 
@@ -187,7 +241,7 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
           
           <Button 
             onClick={onCheckoutClick}
-            disabled={!connected || isSubmitting}
+            disabled={!connected || isSubmitting || isTestSimulating}
             className="w-full h-16 rounded-2xl bg-slate-900 text-white text-lg font-black uppercase tracking-[0.2em] shadow-2xl shadow-slate-200 hover:bg-slate-800 hover:-translate-y-1 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none"
           >
             {isSubmitting ? (
@@ -202,6 +256,25 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
               </>
             )}
           </Button>
+
+          {/* Test Mode Button (for demo purposes) */}
+          {isDemo && (
+            <Button 
+              onClick={onTestSimulatePayment}
+              disabled={!connected || isSubmitting || isTestSimulating}
+              variant="secondary"
+              className="w-full h-12 rounded-xl text-sm font-black uppercase tracking-widest bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100"
+            >
+              {isTestSimulating ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                  Simulating...
+                </>
+              ) : (
+                "🧪 Test Payment (Demo)"
+              )}
+            </Button>
+          )}
           
           <div className="flex flex-col items-center gap-2">
              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
