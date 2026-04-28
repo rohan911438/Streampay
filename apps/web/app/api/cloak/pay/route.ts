@@ -258,6 +258,39 @@ export async function POST(req: Request) {
         "id"
       );
 
+      // Record a unified payment row so dashboard and reports show Cloak payments
+      try {
+        await db.insert(
+          "payments",
+          {
+            user_id: userId,
+            plan_id: plan.id,
+            subscription_id: subscriptionId,
+            provider_payment_id: transferResult.transactionSignature,
+            provider_event_id: transferResult.transactionReference,
+            provider: "cloak",
+            transaction_reference: transferResult.transactionReference,
+            amount_usdc: paymentAmount,
+            currency: "USDC",
+            customer_email: null,
+            wallet_address: walletAddress,
+            paid_at: new Date(),
+            payload: {
+              method: "cloak_private_payment",
+              transactionSignature: transferResult.transactionSignature,
+              transactionReference: transferResult.transactionReference,
+              planId: plan.id,
+              planName: plan.name,
+              walletAddress,
+            },
+            created_at: new Date(),
+          },
+          "id"
+        );
+      } catch (e) {
+        console.error("[pay] Failed to insert payments row for cloak transfer", e);
+      }
+
       await db.update(
         "subscriptions",
         {
