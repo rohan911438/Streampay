@@ -63,3 +63,5 @@ bigint: Failed to load bindings, pure JS will be used (try npm run rebuild?)
   requiredSigners: [ 'GfK6fP7vW1uN5N5m8WJp3Xk9R8z6Jp6Y7a3Z1Xm2Yn3B' ]
 }
  GET /api/magicblock/test 200 in 550ms
+   Reload env: .env.local
+ ✓ Compiled in 4.6s (203 modules)

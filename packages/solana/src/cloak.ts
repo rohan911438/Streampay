@@ -371,7 +371,7 @@ export function initializeCloakService(config?: CloakConfig): CloakService {
   }
 
   const finalConfig: CloakConfig = {
-    rpcUrl: config?.rpcUrl || process.env.SOLANA_RPC_URL || "https://api.mainnet-beta.solana.com",
+    rpcUrl: config?.rpcUrl || process.env.NEXT_PUBLIC_RPC_URL || process.env.SOLANA_RPC_URL || "https://api.mainnet-beta.solana.com",
     commitment: config?.commitment || "confirmed",
     programId: config?.programId,
   };

@@ -184,7 +184,7 @@ export function getMagicBlockService(): MagicBlockService {
   }
 
   const config: MagicBlockConfig = {
-    rpcUrl: process.env.SOLANA_RPC_URL || "https://api.mainnet-beta.solana.com",
+    rpcUrl: process.env.NEXT_PUBLIC_RPC_URL || process.env.SOLANA_RPC_URL || "https://api.mainnet-beta.solana.com",
     magicBlockEndpoint: process.env.MAGICBLOCK_API_ENDPOINT || "https://api.magicblock.io/v1",
     commitment: "confirmed"
   };
