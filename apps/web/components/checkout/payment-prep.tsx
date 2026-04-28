@@ -291,61 +291,84 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
 
       <CardContent className="p-8 space-y-8">
         {/* Payment Mode Toggle */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Payment Method</p>
+            <div className="space-y-1">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Transaction Privacy</p>
               <p className="text-sm font-black text-slate-900 tracking-tight">
-                Choose standard checkout or private payment.
+                Select your preferred payment method.
               </p>
             </div>
             <div className={cn(
-              "flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest",
+              "flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest transition-all",
               paymentMode === "private"
-                ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                ? "bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.1)]"
                 : "bg-slate-100 text-slate-500 border border-slate-200"
             )}>
-              {paymentMode === "private" ? <ShieldCheck className="h-3.5 w-3.5" /> : <CreditCard className="h-3.5 w-3.5" />}
-              {paymentMode === "private" ? "Cloak Private" : "Standard"}
+              {paymentMode === "private" ? <ShieldCheck className="h-3.5 w-3.5 animate-pulse" /> : <CreditCard className="h-3.5 w-3.5" />}
+              {paymentMode === "private" ? "Cloak Protected" : "Public Transfer"}
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 rounded-2xl bg-slate-100 p-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-1 rounded-[22px] bg-slate-100/50 border border-slate-200/50">
             <button
               type="button"
               onClick={() => setPaymentMode("standard")}
               className={cn(
-                "rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest transition-all",
+                "relative group flex flex-col items-center justify-center gap-1 rounded-2xl px-4 py-4 transition-all duration-300",
                 paymentMode === "standard"
-                  ? "bg-white text-slate-900 shadow-sm"
-                  : "text-slate-500 hover:text-slate-900"
+                  ? "bg-white text-slate-900 shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-slate-200"
+                  : "text-slate-500 hover:text-slate-900 hover:bg-white/50"
               )}
             >
-              Standard Payment
+              <span className="text-[11px] font-black uppercase tracking-widest">Public Payment</span>
+              <span className="text-[9px] font-bold opacity-60 uppercase tracking-tighter">(Standard)</span>
             </button>
             <button
               type="button"
               onClick={() => setPaymentMode("private")}
               className={cn(
-                "rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest transition-all",
+                "relative group flex flex-col items-center justify-center gap-1 rounded-2xl px-4 py-4 transition-all duration-300",
                 paymentMode === "private"
-                  ? "bg-slate-900 text-white shadow-sm"
-                  : "text-slate-500 hover:text-slate-900"
+                  ? "bg-slate-900 text-white shadow-[0_10px_20px_rgba(0,0,0,0.15)] scale-[1.02] z-10"
+                  : "text-slate-500 hover:text-slate-900 hover:bg-white/50"
               )}
             >
-              Private Payment
+              {paymentMode !== "private" && (
+                <div className="absolute -top-2 -right-1 bg-emerald-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest shadow-lg">
+                  Secure
+                </div>
+              )}
+              <span className="text-[11px] font-black uppercase tracking-widest">Private Payment</span>
+              <span className="text-[9px] font-bold opacity-80 uppercase tracking-tighter">(Cloak)</span>
             </button>
           </div>
 
-          {paymentMode === "private" && (
-            <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 flex items-start gap-3">
-              <ShieldCheck className="h-5 w-5 text-emerald-600 mt-0.5" />
+          {paymentMode === "private" ? (
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="h-8 w-8 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+                <ShieldCheck className="h-5 w-5 text-emerald-600" />
+              </div>
               <div className="space-y-1">
                 <p className="text-xs font-black uppercase tracking-widest text-emerald-800">
-                  Processed Privately With Cloak
+                  Cloak Privacy Protection Enabled
                 </p>
-                <p className="text-sm font-medium text-emerald-900/80">
-                  Your payment will be routed through the Cloak private payment flow instead of the Dodo checkout redirect.
+                <p className="text-sm font-medium text-emerald-900/80 leading-relaxed">
+                  This transaction will be executed privately. Details such as the amount and recipient will not be visible on-chain.
+                </p>
+              </div>
+            </div>
+          ) : (
+             <div className="rounded-2xl border border-slate-200 bg-white p-4 flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="h-8 w-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
+                <Info className="h-5 w-5 text-slate-400" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-black uppercase tracking-widest text-slate-400">
+                  Standard On-Chain Transaction
+                </p>
+                <p className="text-sm font-medium text-slate-500 leading-relaxed">
+                  Your transaction will be recorded on the public ledger as a standard USDC transfer.
                 </p>
               </div>
             </div>
@@ -354,18 +377,26 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
 
         {/* Wallet Section */}
         <div className={cn(
-          "flex items-center justify-between p-4 rounded-2xl border transition-all duration-300",
-          connected ? "border-emerald-100 bg-emerald-50/50" : "border-slate-100 bg-slate-50/30"
+          "flex items-center justify-between p-4 rounded-2xl border transition-all duration-500",
+          connected 
+            ? paymentMode === "private" 
+              ? "border-emerald-200 bg-emerald-50/30" 
+              : "border-emerald-100 bg-emerald-50/50" 
+            : "border-slate-100 bg-slate-50/30"
         )}>
           <div className="flex items-center gap-4">
             <div className={cn(
-              "h-10 w-10 rounded-xl flex items-center justify-center transition-colors",
-              connected ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-400"
+              "h-10 w-10 rounded-xl flex items-center justify-center transition-all duration-500 shadow-sm",
+              connected 
+                ? paymentMode === "private" 
+                  ? "bg-slate-900 text-emerald-400" 
+                  : "bg-emerald-500 text-white" 
+                : "bg-slate-200 text-slate-400"
             )}>
-              {connected ? <ShieldCheck className="h-5 w-5" /> : <Wallet className="h-5 w-5" />}
+              {connected ? <ShieldCheck className={cn("h-5 w-5", paymentMode === "private" && "animate-pulse")} /> : <Wallet className="h-5 w-5" />}
             </div>
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Connection Status</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Connected Identity</p>
               <p className="text-xs font-black text-slate-900 tracking-tight">
                 {readyToRenderWalletState ? addressLabel : "Initializing..."}
               </p>
@@ -374,9 +405,9 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
           {readyToRenderWalletState && (
             <WalletMultiButton 
               className={cn(
-                "!h-9 !rounded-lg !px-4 !text-[10px] !font-bold !uppercase !tracking-widest !transition-all",
+                "!h-9 !rounded-lg !px-4 !text-[10px] !font-bold !uppercase !tracking-widest !transition-all shadow-sm",
                 connected 
-                  ? "!bg-white !text-slate-900 !border !border-emerald-100 hover:!bg-emerald-100" 
+                  ? "!bg-white !text-slate-900 !border !border-slate-200 hover:!bg-slate-50" 
                   : "!bg-slate-900 !text-white hover:!bg-slate-800"
               )}
             />
@@ -392,8 +423,8 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
                 type="text" 
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
-                disabled={isSubmitting}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm font-semibold focus:border-primary focus:outline-none transition-colors"
+                disabled={isSubmitting || isPrivateSubmitting}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm font-semibold focus:border-slate-900 focus:ring-1 focus:ring-slate-900 focus:outline-none transition-all"
                 placeholder="Your Name"
               />
             </div>
@@ -403,8 +434,8 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
                 type="email" 
                 value={customerEmail}
                 onChange={(e) => setCustomerEmail(e.target.value)}
-                disabled={isSubmitting}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm font-semibold focus:border-primary focus:outline-none transition-colors"
+                disabled={isSubmitting || isPrivateSubmitting}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm font-semibold focus:border-slate-900 focus:ring-1 focus:ring-slate-900 focus:outline-none transition-all"
                 placeholder="name@example.com"
               />
             </div>
@@ -414,49 +445,34 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
         {/* CTA Button */}
         <div className="space-y-4 pt-2">
           {actionError && (
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-xs font-bold">
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-xs font-bold animate-in shake-in duration-300">
               <Info className="h-4 w-4" />
               {actionError}
             </div>
           )}
           
-          {paymentMode === "standard" ? (
-            <Button 
-              onClick={onStandardCheckoutClick}
-              disabled={!connected || isSubmitting || isTestSimulating || isPrivateSubmitting}
-              className="w-full h-16 rounded-2xl bg-slate-900 text-white text-lg font-black uppercase tracking-[0.2em] shadow-2xl shadow-slate-200 hover:bg-slate-800 hover:-translate-y-1 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none"
-            >
-              {isSubmitting ? (
-                <>
-                  <RefreshCw className="h-6 w-6 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  Subscribe Now
-                  <ArrowRight className="h-6 w-6" />
-                </>
-              )}
-            </Button>
-          ) : (
-            <Button
-              onClick={onPrivatePaymentClick}
-              disabled={!connected || isSubmitting || isPrivateSubmitting || isTestSimulating}
-              className="w-full h-16 rounded-2xl bg-emerald-600 text-white text-lg font-black uppercase tracking-[0.2em] shadow-2xl shadow-emerald-100 hover:bg-emerald-700 hover:-translate-y-1 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none"
-            >
-              {isPrivateSubmitting ? (
-                <>
-                  <RefreshCw className="h-6 w-6 animate-spin" />
-                  Processing Privately...
-                </>
-              ) : (
-                <>
-                  Pay Privately with Cloak
-                  <ShieldCheck className="h-6 w-6" />
-                </>
-              )}
-            </Button>
-          )}
+          <Button 
+            onClick={paymentMode === "standard" ? onStandardCheckoutClick : onPrivatePaymentClick}
+            disabled={!connected || isSubmitting || isTestSimulating || isPrivateSubmitting}
+            className={cn(
+              "w-full h-16 rounded-2xl text-white text-lg font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none shadow-2xl",
+              paymentMode === "private"
+                ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200/50 hover:-translate-y-1"
+                : "bg-slate-900 hover:bg-slate-800 shadow-slate-200/50 hover:-translate-y-1"
+            )}
+          >
+            {isSubmitting || isPrivateSubmitting ? (
+              <>
+                <RefreshCw className="h-6 w-6 animate-spin" />
+                {paymentMode === "private" ? "Securing Privacy..." : "Processing..."}
+              </>
+            ) : (
+              <>
+                {paymentMode === "private" ? "Pay Privately with Cloak" : "Subscribe Now"}
+                {paymentMode === "private" ? <ShieldCheck className="h-6 w-6" /> : <ArrowRight className="h-6 w-6" />}
+              </>
+            )}
+          </Button>
 
           {/* Test Mode Button (for demo purposes) */}
           {isDemo && (
