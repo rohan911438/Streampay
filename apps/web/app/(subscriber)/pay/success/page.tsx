@@ -18,6 +18,8 @@ export default function PaymentSuccessPage() {
   const subscriptionId = searchParams.get("subscription_id");
   const checkoutSessionId = searchParams.get("checkout_session_id");
   const isTestMode = searchParams.get("test") === "true";
+  const isPrivatePayment = searchParams.get("private") === "true";
+  const transactionSignature = searchParams.get("transaction_signature");
 
   useEffect(() => {
     if (isTestMode && (subscriptionId || checkoutSessionId)) {
@@ -62,10 +64,14 @@ export default function PaymentSuccessPage() {
     <div className="space-y-8">
       <div className="text-center space-y-2">
         <h2 className="text-3xl font-black tracking-tight text-slate-900 uppercase">
-          Payment <span className="text-primary">Received</span>
+          {isPrivatePayment ? "Private Payment" : "Payment"} <span className="text-primary">Received</span>
         </h2>
         <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
-          {isTestMode ? "Testing Mode - Simulation Active" : "Transaction Complete"}
+          {isTestMode
+            ? "Testing Mode - Simulation Active"
+            : isPrivatePayment
+              ? "Cloak Private Transfer Complete"
+              : "Transaction Complete"}
         </p>
       </div>
 
@@ -93,12 +99,14 @@ export default function PaymentSuccessPage() {
                 </div>
                 <div className="text-center space-y-1">
                   <p className="text-lg font-black text-slate-900">
-                    {isTestMode ? "Payment Simulated" : "Payment Successful"}
+                    {isTestMode ? "Payment Simulated" : isPrivatePayment ? "Private Payment Successful" : "Payment Successful"}
                   </p>
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                     {isTestMode
                       ? "Subscription activated for testing"
-                      : "Your subscription is now active"}
+                      : isPrivatePayment
+                        ? "Your subscription is now active through Cloak"
+                        : "Your subscription is now active"}
                   </p>
                 </div>
               </div>
@@ -150,6 +158,14 @@ export default function PaymentSuccessPage() {
                       </code>
                     </div>
                   )}
+                  {isPrivatePayment && transactionSignature && (
+                    <div className="flex justify-between items-center gap-4">
+                      <span className="font-semibold text-slate-600">Cloak Transaction</span>
+                      <code className="text-[10px] font-mono text-slate-500 break-all text-right">
+                        {transactionSignature}
+                      </code>
+                    </div>
+                  )}
                   {isTestMode && (
                     <div className="pt-2 border-t border-slate-200 mt-2">
                       <p className="text-[10px] text-slate-400 italic">
@@ -195,6 +211,17 @@ export default function PaymentSuccessPage() {
           <p className="text-xs text-blue-700">
             This page used the temporary payment simulation API to update your subscription status in
             the database. In production, this will be replaced with real Dodo webhook notifications.
+          </p>
+        </div>
+      )}
+
+      {isPrivatePayment && !isTestMode && (
+        <div className="max-w-2xl mx-auto rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 mb-2">
+            Cloak Private Payment
+          </p>
+          <p className="text-xs text-emerald-700">
+            This subscription was activated through the private Cloak payment flow, with the transaction recorded separately from the standard checkout path.
           </p>
         </div>
       )}

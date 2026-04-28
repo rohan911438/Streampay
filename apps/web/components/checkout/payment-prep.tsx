@@ -21,11 +21,31 @@ type PaymentPrepProps = {
   isDemo?: boolean;
 };
 
+type PaymentMode = "standard" | "private";
+
+type PlanSummary = {
+  id: string | null;
+  name: string;
+  priceUsdc: number;
+  billingInterval: "monthly" | "yearly";
+};
+
 type CreateCheckoutResponse = {
   checkout_url?: string;
   subscription_id?: string;
   checkout_session_id?: string;
   error?: string;
+};
+
+type CloakPayResponse = {
+  success?: boolean;
+  error?: string;
+  message?: string;
+  subscriptionId?: string;
+  transactionSignature?: string;
+  transactionReference?: string;
+  status?: string;
+  paymentMethod?: string;
 };
 
 export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
@@ -34,11 +54,61 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
   const [customerName, setCustomerName] = useState("Demo User");
   const [customerEmail, setCustomerEmail] = useState("demo@example.com");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPrivateSubmitting, setIsPrivateSubmitting] = useState(false);
   const [isTestSimulating, setIsTestSimulating] = useState(false);
+  const [paymentMode, setPaymentMode] = useState<PaymentMode>("standard");
+  const [plan, setPlan] = useState<PlanSummary>({
+    id: null,
+    name: "Starter Pro",
+    priceUsdc: 49,
+    billingInterval: "monthly",
+  });
   const { connected, publicKey, wallets } = useWallet();
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadPlan() {
+      try {
+        const response = await fetch("/api/plans", { cache: "no-store" });
+        if (!response.ok) {
+          return;
+        }
+
+        const payload = (await response.json()) as {
+          plans?: Array<{
+            id: string;
+            name: string;
+            priceUsdc: number;
+            billingInterval: "monthly" | "yearly";
+            active?: boolean;
+          }>;
+        };
+
+        const selectedPlan = payload.plans?.find((item) => item.active) ?? payload.plans?.[0];
+
+        if (!cancelled && selectedPlan) {
+          setPlan({
+            id: selectedPlan.id,
+            name: selectedPlan.name,
+            priceUsdc: Number(selectedPlan.priceUsdc) || 49,
+            billingInterval: selectedPlan.billingInterval,
+          });
+        }
+      } catch {
+        // Keep the demo fallback values when the plans API is unavailable.
+      }
+    }
+
+    loadPlan();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const hasDetectedWallet = useMemo(
@@ -57,7 +127,10 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
     ? publicKey?.toBase58().slice(0, 6) + "..." + publicKey?.toBase58().slice(-6)
     : "Wallet not connected";
 
-  async function onCheckoutClick() {
+  const priceLabel = `$${plan.priceUsdc.toFixed(2)}`;
+  const intervalLabel = plan.billingInterval === "yearly" ? "/ Year" : "/ Month";
+
+  async function onStandardCheckoutClick() {
     setActionError(null);
 
     if (!connected) {
@@ -97,6 +170,52 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
       setActionError("A network error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function onPrivatePaymentClick() {
+    setActionError(null);
+
+    if (!connected || !publicKey) {
+      setActionError("Please connect your wallet first.");
+      return;
+    }
+
+    setIsPrivateSubmitting(true);
+
+    try {
+      const response = await fetch("/api/cloak/pay", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          walletAddress: publicKey.toBase58(),
+          amount: plan.priceUsdc,
+        }),
+      });
+
+      const data = (await response.json()) as CloakPayResponse;
+
+      if (!response.ok || !data.success) {
+        setActionError(data.message ?? data.error ?? "Private payment failed. Please try again.");
+        return;
+      }
+
+      const params = new URLSearchParams({
+        private: "true",
+        subscription_id: data.subscriptionId ?? "",
+      });
+
+      if (data.transactionSignature) {
+        params.append("transaction_signature", data.transactionSignature);
+      }
+
+      window.location.assign(`/pay/success?${params.toString()}`);
+    } catch {
+      setActionError("A network error occurred. Please try again.");
+    } finally {
+      setIsPrivateSubmitting(false);
     }
   }
 
@@ -162,15 +281,77 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
           <Zap className="h-5 w-5 text-primary" />
         </div>
         <div className="space-y-1">
-          <h3 className="text-3xl font-black tracking-tight uppercase">Starter Pro</h3>
+          <h3 className="text-3xl font-black tracking-tight uppercase">{plan.name}</h3>
           <div className="flex items-baseline gap-2">
-            <span className="text-4xl font-black tracking-tighter">$49.00</span>
-            <span className="text-sm font-bold text-white/40 uppercase tracking-widest">/ Month</span>
+            <span className="text-4xl font-black tracking-tighter">{priceLabel}</span>
+            <span className="text-sm font-bold text-white/40 uppercase tracking-widest">{intervalLabel}</span>
           </div>
         </div>
       </div>
 
       <CardContent className="p-8 space-y-8">
+        {/* Payment Mode Toggle */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Payment Method</p>
+              <p className="text-sm font-black text-slate-900 tracking-tight">
+                Choose standard checkout or private payment.
+              </p>
+            </div>
+            <div className={cn(
+              "flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest",
+              paymentMode === "private"
+                ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                : "bg-slate-100 text-slate-500 border border-slate-200"
+            )}>
+              {paymentMode === "private" ? <ShieldCheck className="h-3.5 w-3.5" /> : <CreditCard className="h-3.5 w-3.5" />}
+              {paymentMode === "private" ? "Cloak Private" : "Standard"}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 rounded-2xl bg-slate-100 p-1">
+            <button
+              type="button"
+              onClick={() => setPaymentMode("standard")}
+              className={cn(
+                "rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest transition-all",
+                paymentMode === "standard"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500 hover:text-slate-900"
+              )}
+            >
+              Standard Payment
+            </button>
+            <button
+              type="button"
+              onClick={() => setPaymentMode("private")}
+              className={cn(
+                "rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest transition-all",
+                paymentMode === "private"
+                  ? "bg-slate-900 text-white shadow-sm"
+                  : "text-slate-500 hover:text-slate-900"
+              )}
+            >
+              Private Payment
+            </button>
+          </div>
+
+          {paymentMode === "private" && (
+            <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 flex items-start gap-3">
+              <ShieldCheck className="h-5 w-5 text-emerald-600 mt-0.5" />
+              <div className="space-y-1">
+                <p className="text-xs font-black uppercase tracking-widest text-emerald-800">
+                  Processed Privately With Cloak
+                </p>
+                <p className="text-sm font-medium text-emerald-900/80">
+                  Your payment will be routed through the Cloak private payment flow instead of the Dodo checkout redirect.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Wallet Section */}
         <div className={cn(
           "flex items-center justify-between p-4 rounded-2xl border transition-all duration-300",
@@ -239,29 +420,49 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
             </div>
           )}
           
-          <Button 
-            onClick={onCheckoutClick}
-            disabled={!connected || isSubmitting || isTestSimulating}
-            className="w-full h-16 rounded-2xl bg-slate-900 text-white text-lg font-black uppercase tracking-[0.2em] shadow-2xl shadow-slate-200 hover:bg-slate-800 hover:-translate-y-1 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none"
-          >
-            {isSubmitting ? (
-              <>
-                <RefreshCw className="h-6 w-6 animate-spin" />
-                Processing...
-              </>
-            ) : (
-              <>
-                Subscribe Now
-                <ArrowRight className="h-6 w-6" />
-              </>
-            )}
-          </Button>
+          {paymentMode === "standard" ? (
+            <Button 
+              onClick={onStandardCheckoutClick}
+              disabled={!connected || isSubmitting || isTestSimulating || isPrivateSubmitting}
+              className="w-full h-16 rounded-2xl bg-slate-900 text-white text-lg font-black uppercase tracking-[0.2em] shadow-2xl shadow-slate-200 hover:bg-slate-800 hover:-translate-y-1 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none"
+            >
+              {isSubmitting ? (
+                <>
+                  <RefreshCw className="h-6 w-6 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  Subscribe Now
+                  <ArrowRight className="h-6 w-6" />
+                </>
+              )}
+            </Button>
+          ) : (
+            <Button
+              onClick={onPrivatePaymentClick}
+              disabled={!connected || isSubmitting || isPrivateSubmitting || isTestSimulating}
+              className="w-full h-16 rounded-2xl bg-emerald-600 text-white text-lg font-black uppercase tracking-[0.2em] shadow-2xl shadow-emerald-100 hover:bg-emerald-700 hover:-translate-y-1 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none"
+            >
+              {isPrivateSubmitting ? (
+                <>
+                  <RefreshCw className="h-6 w-6 animate-spin" />
+                  Processing Privately...
+                </>
+              ) : (
+                <>
+                  Pay Privately with Cloak
+                  <ShieldCheck className="h-6 w-6" />
+                </>
+              )}
+            </Button>
+          )}
 
           {/* Test Mode Button (for demo purposes) */}
           {isDemo && (
             <Button 
               onClick={onTestSimulatePayment}
-              disabled={!connected || isSubmitting || isTestSimulating}
+              disabled={!connected || isSubmitting || isTestSimulating || isPrivateSubmitting}
               variant="secondary"
               className="w-full h-12 rounded-xl text-sm font-black uppercase tracking-widest bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100"
             >
@@ -279,10 +480,10 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
           <div className="flex flex-col items-center gap-2">
              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
                 <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                Automatic monthly renewals on-chain
+               {paymentMode === "private" ? "Private payment processed through Cloak" : "Automatic monthly renewals on-chain"}
              </div>
              <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-slate-300">
-                Secure checkout powered by Dodo Payments
+               {paymentMode === "private" ? "Protected by Cloak private transfer flow" : "Secure checkout powered by Dodo Payments"}
              </div>
           </div>
         </div>

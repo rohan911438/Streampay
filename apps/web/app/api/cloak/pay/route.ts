@@ -1,43 +1,37 @@
 import { NextResponse } from "next/server";
+import { Keypair, PublicKey } from "@solana/web3.js";
 import { getCloakService } from "@paystream/solana";
 import { db } from "@paystream/db";
-import { Keypair } from "@solana/web3.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/**
- * Request body for pay endpoint
- */
 interface PayRequestBody {
   walletAddress: string;
-  planId: string;
-  senderPrivateKey: string; // Base64 encoded
-  amount?: number; // Optional, will be fetched from plan if not provided
+  planId?: string;
+  amount?: number;
+  senderPrivateKey?: string;
 }
 
-/**
- * POST /api/cloak/pay
- *
- * Execute a private payment for a subscription plan
- *
- * Request body:
- * {
- *   "walletAddress": "user-solana-wallet",
- *   "planId": "plan-uuid",
- *   "senderPrivateKey": "base64-encoded-private-key",
- *   "amount": 99.99  // Optional
- * }
- *
- * Response:
- * {
- *   "success": true,
- *   "subscriptionId": "subscription-uuid",
- *   "transactionSignature": "tx-hash",
- *   "status": "active",
- *   "message": "Payment processed successfully"
- * }
- */
+function isValidSolanaAddress(address: string): boolean {
+  try {
+    new PublicKey(address);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function decodePrivateKey(base64Key: string): Uint8Array {
+  const buffer = Buffer.from(base64Key, "base64");
+
+  if (buffer.length !== 64) {
+    throw new Error("Private key must be 64 bytes");
+  }
+
+  return new Uint8Array(buffer);
+}
+
 export async function POST(req: Request) {
   try {
     let body: PayRequestBody;
@@ -51,7 +45,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Validate inputs
     const { walletAddress, planId, senderPrivateKey, amount } = body;
 
     if (!walletAddress || typeof walletAddress !== "string") {
@@ -61,50 +54,45 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!planId || typeof planId !== "string") {
+    if (!isValidSolanaAddress(walletAddress)) {
       return NextResponse.json(
-        { error: "planId is required" },
+        { error: "walletAddress is not a valid Solana address" },
         { status: 400 }
       );
     }
 
-    if (!senderPrivateKey || typeof senderPrivateKey !== "string") {
+    if (planId !== undefined && typeof planId !== "string") {
       return NextResponse.json(
-        { error: "senderPrivateKey is required" },
+        { error: "planId must be a string when provided" },
         { status: 400 }
       );
     }
 
-    // Decode private key
-    let privateKeyBytes: Uint8Array;
-    try {
-      const buffer = Buffer.from(senderPrivateKey, "base64");
-      if (buffer.length !== 64) {
-        throw new Error("Private key must be 64 bytes");
-      }
-      privateKeyBytes = new Uint8Array(buffer);
-    } catch (error) {
+    if (amount !== undefined && (typeof amount !== "number" || !Number.isFinite(amount))) {
       return NextResponse.json(
-        { error: "Invalid private key format" },
+        { error: "amount must be a finite number when provided" },
         { status: 400 }
       );
     }
 
-    // Get plan details
-    const planResult = await db.query(
-      "SELECT * FROM plans WHERE id = $1 AND is_active = true",
-      [planId]
-    );
+    const planResult = planId
+      ? await db.query(
+          "SELECT id, name, price_usdc, billing_interval FROM plans WHERE id = $1 AND is_active = true LIMIT 1",
+          [planId]
+        )
+      : await db.query(
+          "SELECT id, name, price_usdc, billing_interval FROM plans WHERE is_active = true ORDER BY created_at ASC LIMIT 1"
+        );
 
     const plan = planResult.rows[0];
     if (!plan) {
       return NextResponse.json(
-        { error: "Plan not found or is inactive" },
+        { error: planId ? "Plan not found or is inactive" : "No active plan is available" },
         { status: 404 }
       );
     }
 
-    const paymentAmount = amount || parseFloat(plan.price_usdc);
+    const paymentAmount = amount ?? Number(plan.price_usdc);
 
     if (paymentAmount <= 0) {
       return NextResponse.json(
@@ -113,7 +101,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Get merchant wallet address from environment
     const merchantWalletAddress = process.env.MERCHANT_WALLET_ADDRESS;
     if (!merchantWalletAddress) {
       console.error("[pay] MERCHANT_WALLET_ADDRESS not configured");
@@ -123,7 +110,43 @@ export async function POST(req: Request) {
       );
     }
 
-    // Get or create user
+    const signerKeyBase64 = senderPrivateKey?.trim() || process.env.CLOAK_PRIVATE_PAYMENT_SIGNER_KEY?.trim();
+
+    if (!signerKeyBase64) {
+      return NextResponse.json(
+        {
+          error: "Payment signer is not configured",
+          details: "Set CLOAK_PRIVATE_PAYMENT_SIGNER_KEY or pass senderPrivateKey for testing.",
+        },
+        { status: 500 }
+      );
+    }
+
+    let privateKeyBytes: Uint8Array;
+
+    try {
+      privateKeyBytes = decodePrivateKey(signerKeyBase64);
+    } catch (error) {
+      return NextResponse.json(
+        {
+          error: error instanceof Error ? error.message : "Invalid private key format",
+        },
+        { status: 400 }
+      );
+    }
+
+    const signerKeypair = Keypair.fromSecretKey(privateKeyBytes);
+    const signerAddress = signerKeypair.publicKey.toBase58();
+
+    if (senderPrivateKey && signerAddress !== walletAddress) {
+      return NextResponse.json(
+        {
+          error: "walletAddress does not match the supplied senderPrivateKey",
+        },
+        { status: 400 }
+      );
+    }
+
     const userResult = await db.query(
       "SELECT * FROM users WHERE wallet_address = $1",
       [walletAddress]
@@ -133,8 +156,7 @@ export async function POST(req: Request) {
     if (userResult.rows.length > 0) {
       userId = userResult.rows[0].id;
     } else {
-      // Create new user
-      const createUserResult = await db.insert(
+      const createdUser = await db.insert<{ id: string }>(
         "users",
         {
           wallet_address: walletAddress,
@@ -143,7 +165,6 @@ export async function POST(req: Request) {
         },
         "id"
       );
-      const createdUser = createUserResult?.[0];
 
       if (!createdUser?.id) {
         console.error("[pay] Failed to create user");
@@ -156,98 +177,105 @@ export async function POST(req: Request) {
       userId = createdUser.id;
     }
 
-    // Create subscription record
-    const nextBillingDate = new Date();
-    nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
-
-    const subscriptionResult = await db.insert(
-      "subscriptions",
-      {
-        user_id: userId,
-        plan_id: planId,
-        status: "pending", // Will be updated to active after successful payment
-        start_date: new Date(),
-        next_billing_date: nextBillingDate,
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      "id"
+    const existingSubscriptionResult = await db.query(
+      "SELECT id, status FROM subscriptions WHERE user_id = $1 AND plan_id = $2 AND status IN ('pending', 'active') ORDER BY created_at DESC LIMIT 1",
+      [userId, plan.id]
     );
 
-    const createdSubscription = subscriptionResult?.[0];
-    if (!createdSubscription?.id) {
-      console.error("[pay] Failed to create subscription");
-      return NextResponse.json(
-        { error: "Failed to create subscription" },
-        { status: 500 }
+    let subscriptionId: string;
+
+    if (existingSubscriptionResult.rows[0]) {
+      subscriptionId = existingSubscriptionResult.rows[0].id;
+    } else {
+      const nextBillingDate = new Date();
+      nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+
+      const createdSubscription = await db.insert<{ id: string }>(
+        "subscriptions",
+        {
+          user_id: userId,
+          plan_id: plan.id,
+          status: "pending",
+          start_date: new Date(),
+          next_billing_date: nextBillingDate,
+          created_at: new Date(),
+          updated_at: new Date(),
+        },
+        "id"
       );
+
+      if (!createdSubscription?.id) {
+        console.error("[pay] Failed to create subscription");
+        return NextResponse.json(
+          { error: "Failed to create subscription" },
+          { status: 500 }
+        );
+      }
+
+      subscriptionId = createdSubscription.id;
     }
 
-    const subscriptionId = createdSubscription.id;
-
-    // Execute private transfer using Cloak service
     const cloakService = getCloakService();
-
-    let transactionSignature: string;
-    let transactionReference: string;
 
     try {
       const transferResult = await cloakService.executePrivateTransfer(
         privateKeyBytes,
         merchantWalletAddress,
         paymentAmount,
-        undefined, // use default USDC mint
+        undefined,
         {
-          description: `Plan purchase: ${plan.name}`,
+          description: `Private payment for ${plan.name}`,
           invoiceId: subscriptionId,
-          orderId: `SUB-${subscriptionId}`,
+          orderId: `PLAN-${plan.id}`,
+          planId: plan.id,
+          walletAddress,
         }
       );
-
-      transactionSignature = transferResult.transactionSignature;
-      transactionReference = transferResult.transactionReference;
-
-      // Store transaction details
-      const senderKeypair = Keypair.fromSecretKey(privateKeyBytes);
-      const senderAddress = senderKeypair.publicKey.toString();
 
       await db.insert(
         "private_transactions",
         {
           user_id: userId,
           subscription_id: subscriptionId,
-          sender_address: senderAddress,
+          sender_address: signerAddress,
           recipient_address: merchantWalletAddress,
           amount_usdc: paymentAmount,
-          transaction_signature: transactionSignature,
-          transaction_reference: transactionReference,
-          status: "confirmed",
-          confirmation_status: "confirmed",
-          metadata: JSON.stringify({
+          transaction_signature: transferResult.transactionSignature,
+          transaction_reference: transferResult.transactionReference,
+          status: transferResult.status,
+          confirmation_status: transferResult.status,
+          metadata: {
+            planId: plan.id,
             planName: plan.name,
-            planId: planId,
-            billingInterval: plan.billing_interval,
-          }),
+            walletAddress,
+            paymentAmount,
+            paymentMethod: "cloak_private_payment",
+          },
           created_at: new Date(),
           updated_at: new Date(),
-          confirmed_at: new Date(),
+          confirmed_at: transferResult.status === "confirmed" ? new Date() : null,
         },
-        "*"
+        "id"
       );
 
-      // Update subscription to active
       await db.update(
         "subscriptions",
         {
           status: "active",
+          start_date: new Date(),
+          next_billing_date: (() => {
+            const nextBillingDate = new Date();
+            nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+            return nextBillingDate;
+          })(),
+          canceled_at: null,
           updated_at: new Date(),
         },
         "id = $1",
         [subscriptionId],
-        "*"
+        "id"
       );
 
-      // Record subscription event
       await db.insert(
         "subscription_events",
         {
@@ -255,33 +283,32 @@ export async function POST(req: Request) {
           subscription_id: subscriptionId,
           amount_usdc: paymentAmount,
           event_type: "payment_success",
-          provider_event_id: transactionSignature,
-          payload: JSON.stringify({
-            method: "cloak_private_transfer",
-            transactionSignature,
-            planId,
-          }),
+          provider_event_id: transferResult.transactionSignature,
+          payload: {
+            method: "cloak_private_payment",
+            planId: plan.id,
+            planName: plan.name,
+            walletAddress,
+            transactionSignature: transferResult.transactionSignature,
+            transactionReference: transferResult.transactionReference,
+          },
           occurred_at: new Date(),
           created_at: new Date(),
         },
-        "*"
+        "id"
       );
-
-      console.log("[pay] Payment processed successfully", {
-        userId,
-        subscriptionId,
-        planId,
-        amount: paymentAmount,
-        signature: transactionSignature,
-      });
 
       return NextResponse.json(
         {
           success: true,
+          paymentMethod: "cloak",
           subscriptionId,
-          transactionSignature,
+          planId: plan.id,
+          amount: paymentAmount,
+          transactionSignature: transferResult.transactionSignature,
+          transactionReference: transferResult.transactionReference,
           status: "active",
-          message: "Payment processed successfully. Subscription activated.",
+          message: "Private payment processed successfully. Subscription activated.",
         },
         { status: 200 }
       );
@@ -294,11 +321,10 @@ export async function POST(req: Request) {
       console.error("[pay] Transfer failed", {
         userId,
         subscriptionId,
-        planId,
+        planId: plan.id,
         error: errorMessage,
       });
 
-      // Record failed payment event
       await db.insert(
         "subscription_events",
         {
@@ -306,17 +332,19 @@ export async function POST(req: Request) {
           subscription_id: subscriptionId,
           amount_usdc: paymentAmount,
           event_type: "payment_failed",
-          payload: JSON.stringify({
-            method: "cloak_private_transfer",
+          payload: {
+            method: "cloak_private_payment",
+            planId: plan.id,
+            planName: plan.name,
+            walletAddress,
             error: errorMessage,
-          }),
+          },
           occurred_at: new Date(),
           created_at: new Date(),
         },
-        "*"
+        "id"
       );
 
-      // Update subscription to failed
       await db.update(
         "subscriptions",
         {
@@ -326,17 +354,18 @@ export async function POST(req: Request) {
         },
         "id = $1",
         [subscriptionId],
-        "*"
+        "id"
       );
 
       return NextResponse.json(
         {
           success: false,
+          paymentMethod: "cloak",
           subscriptionId,
           error: "Payment failed",
           message: errorMessage,
         },
-        { status: 402 } // 402 Payment Required
+        { status: 402 }
       );
     }
   } catch (error) {
