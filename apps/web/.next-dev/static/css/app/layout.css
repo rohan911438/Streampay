@@ -1954,6 +1954,10 @@ video {
 .bg-transparent {
   background-color: transparent;
 }
+.bg-emerald-800 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(6 95 70 / var(--tw-bg-opacity, 1));
+}
 .bg-gradient-to-br {
   background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
 }
@@ -2515,6 +2519,10 @@ video {
 }
 .text-emerald-100\/70 {
   color: rgb(209 250 229 / 0.7);
+}
+.text-emerald-300 {
+  --tw-text-opacity: 1;
+  color: rgb(110 231 183 / var(--tw-text-opacity, 1));
 }
 .underline {
   text-decoration-line: underline;

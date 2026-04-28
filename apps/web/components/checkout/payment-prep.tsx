@@ -285,10 +285,12 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
         <CardContent className="p-8 space-y-6">
           <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-6 space-y-4">
             <div className="flex items-center gap-3">
-              <ShieldCheck className="h-6 w-6 text-emerald-600" />
+              <div className="h-6 w-6 rounded bg-slate-900 flex items-center justify-center shrink-0">
+                <Zap className="h-3.5 w-3.5 text-emerald-400" />
+              </div>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Privacy Status</p>
-                <p className="text-sm font-black text-slate-900">Protected by Cloak</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Execution Layer</p>
+                <p className="text-sm font-black text-slate-900">Secured by MagicBlock</p>
               </div>
             </div>
             <div className="pt-4 border-t border-emerald-100/50 space-y-3">
@@ -304,7 +306,7 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
           </div>
 
           <p className="text-center text-sm text-slate-500 leading-relaxed px-4">
-            Your payment has been processed privately using Cloak. This means your transaction details—including the amount and recipient—are completely hidden on the blockchain, ensuring your financial activity remains confidential and secure.
+            Your payment has been processed privately using Cloak and optimized via <span className="font-black text-slate-900">MagicBlock</span>. This means your transaction details—including the amount and recipient—are completely hidden on the blockchain, while ensuring maximum security and speed.
           </p>
 
           <Button 
@@ -398,11 +400,17 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
                 <ShieldCheck className="h-5 w-5 text-emerald-600" />
               </div>
               <div className="space-y-1">
-                <p className="text-xs font-black uppercase tracking-widest text-emerald-800">
-                  Cloak Privacy Protection Enabled
-                </p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-black uppercase tracking-widest text-emerald-800">
+                    Cloak Privacy Protection Enabled
+                  </p>
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-800 text-white text-[8px] font-black uppercase tracking-widest shadow-sm">
+                    <Zap className="h-2 w-2 text-emerald-300" />
+                    Secured by MagicBlock
+                  </div>
+                </div>
                 <p className="text-sm font-medium text-emerald-900/80 leading-relaxed">
-                  This transaction will be executed privately. Details such as the amount and recipient will not be visible on-chain.
+                  This transaction will be executed privately and optimized through MagicBlock's execution layer.
                 </p>
               </div>
             </div>
