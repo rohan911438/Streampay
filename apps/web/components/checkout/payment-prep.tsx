@@ -56,7 +56,7 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPrivateSubmitting, setIsPrivateSubmitting] = useState(false);
   const [isTestSimulating, setIsTestSimulating] = useState(false);
-  const [paymentMode, setPaymentMode] = useState<PaymentMode>("standard");
+  const [paymentMode, setPaymentMode] = useState<"standard" | "private">("private");
   const [plan, setPlan] = useState<PlanSummary>({
     id: null,
     name: "Starter Pro",
@@ -361,6 +361,24 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-1 rounded-[22px] bg-slate-100/50 border border-slate-200/50">
             <button
               type="button"
+              onClick={() => setPaymentMode("private")}
+              className={cn(
+                "relative group flex flex-col items-center justify-center gap-1 rounded-2xl px-4 py-4 transition-all duration-300",
+                paymentMode === "private"
+                  ? "bg-slate-900 text-white shadow-[0_10px_20px_rgba(0,0,0,0.15)] scale-[1.02] z-10"
+                  : "text-slate-500 hover:text-slate-900 hover:bg-white/50"
+              )}
+            >
+              {paymentMode === "private" && (
+                <div className="absolute -top-2 -right-1 bg-emerald-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest shadow-lg animate-bounce">
+                  Recommended
+                </div>
+              )}
+              <span className="text-[11px] font-black uppercase tracking-widest">Private Payment</span>
+              <span className="text-[9px] font-bold opacity-80 uppercase tracking-tighter">(Cloak)</span>
+            </button>
+            <button
+              type="button"
               onClick={() => setPaymentMode("standard")}
               className={cn(
                 "relative group flex flex-col items-center justify-center gap-1 rounded-2xl px-4 py-4 transition-all duration-300",
@@ -371,24 +389,6 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
             >
               <span className="text-[11px] font-black uppercase tracking-widest">Public Payment</span>
               <span className="text-[9px] font-bold opacity-60 uppercase tracking-tighter">(Standard)</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setPaymentMode("private")}
-              className={cn(
-                "relative group flex flex-col items-center justify-center gap-1 rounded-2xl px-4 py-4 transition-all duration-300",
-                paymentMode === "private"
-                  ? "bg-slate-900 text-white shadow-[0_10px_20px_rgba(0,0,0,0.15)] scale-[1.02] z-10"
-                  : "text-slate-500 hover:text-slate-900 hover:bg-white/50"
-              )}
-            >
-              {paymentMode !== "private" && (
-                <div className="absolute -top-2 -right-1 bg-emerald-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest shadow-lg">
-                  Secure
-                </div>
-              )}
-              <span className="text-[11px] font-black uppercase tracking-widest">Private Payment</span>
-              <span className="text-[9px] font-bold opacity-80 uppercase tracking-tighter">(Cloak)</span>
             </button>
           </div>
 
@@ -512,11 +512,18 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
             {isSubmitting || isPrivateSubmitting ? (
               <>
                 <RefreshCw className="h-6 w-6 animate-spin" />
-                {paymentMode === "private" ? "Securing Privacy..." : "Processing..."}
+                {paymentMode === "private" ? "Executing Private Transfer..." : "Processing..."}
               </>
             ) : (
               <>
-                {paymentMode === "private" ? "Pay Privately with Cloak" : "Subscribe Now"}
+                {paymentMode === "private" ? (
+                  <div className="flex flex-col items-center">
+                    <span className="text-xs font-bold opacity-80 mb-[-4px]">Fastest & Private</span>
+                    <span>Secure Checkout</span>
+                  </div>
+                ) : (
+                  "Standard Subscribe"
+                )}
                 {paymentMode === "private" ? <ShieldCheck className="h-6 w-6" /> : <ArrowRight className="h-6 w-6" />}
               </>
             )}
