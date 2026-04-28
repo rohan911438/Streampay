@@ -3,6 +3,7 @@ import { Keypair, PublicKey } from "@solana/web3.js";
 import { getCloakService } from "@paystream/solana";
 import { db } from "@paystream/db";
 import { recordSubscriptionEvent } from "@/lib/subscriptions-db";
+import { getMagicBlockService } from "@/lib/magicblock-service";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -216,14 +217,13 @@ export async function POST(req: Request) {
       subscriptionId = createdSubscription.id;
     }
 
-    const cloakService = getCloakService();
+    const magicBlockService = getMagicBlockService();
 
     try {
-      const transferResult = await cloakService.executePrivateTransfer(
+      const transferResult = await magicBlockService.executeOptimizedPrivateTransfer(
         privateKeyBytes,
         merchantWalletAddress,
         paymentAmount,
-        undefined,
         {
           description: `Private payment for ${plan.name}`,
           invoiceId: subscriptionId,

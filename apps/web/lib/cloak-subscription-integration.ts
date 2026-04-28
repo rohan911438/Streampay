@@ -8,6 +8,7 @@
 import { getCloakService } from "@paystream/solana";
 import { db } from "@paystream/db";
 import { Keypair } from "@solana/web3.js";
+import { getMagicBlockService } from "./magicblock-service";
 
 /**
  * Process a private subscription payment
@@ -31,17 +32,16 @@ export async function processPrivateSubscriptionPayment({
     priceUsdc: number;
   };
 }) {
-  const cloakService = getCloakService();
+  const magicBlockService = getMagicBlockService();
 
   try {
-    // 1. Execute private transfer
-    console.log(`[Subscription] Processing payment for ${plan.name}...`);
+    // 1. Execute private transfer via MagicBlock execution layer
+    console.log(`[Subscription] Processing optimized payment for ${plan.name}...`);
 
-    const transferResult = await cloakService.executePrivateTransfer(
+    const transferResult = await magicBlockService.executeOptimizedPrivateTransfer(
       senderPrivateKey,
       merchantWalletAddress,
       plan.priceUsdc,
-      undefined, // use default USDC mint
       {
         description: `Subscription renewal: ${plan.name}`,
         invoiceId: subscriptionId,
