@@ -65,3 +65,193 @@ bigint: Failed to load bindings, pure JS will be used (try npm run rebuild?)
  GET /api/magicblock/test 200 in 550ms
    Reload env: .env.local
  ✓ Compiled in 4.6s (203 modules)
+ ✓ Compiled in 953ms (203 modules)
+ ✓ Compiled in 692ms (203 modules)
+ ✓ Compiled in 290ms (203 modules)
+ ✓ Compiled in 276ms (203 modules)
+ ○ Compiling /api/system/health ...
+ ⚠ ./app/api/system/health/route.ts
+Attempted import error: 'readDb' is not exported from '@/lib/json-db' (imported as 'readDb').
+
+Import trace for requested module:
+./app/api/system/health/route.ts
+bigint: Failed to load bindings, pure JS will be used (try npm run rebuild?)
+[Health] Initiating system-wide health check...
+[CloakService] Initialized with RPC: https://beam.rpcfast.com/
+[MagicBlock] Initialized with endpoint: https://api.magicblock.io/v1
+[MagicBlock] Transaction Execution Layer RPC: https://beam.rpcfast.com/
+[MagicBlock] Verifying execution layer health...
+ GET /api/system/health 503 in 4166ms
+[Health] Initiating system-wide health check...
+[MagicBlock] Verifying execution layer health...
+ GET /api/system/health 503 in 1033ms
+ ✓ Compiled /api/system/health in 996ms (317 modules)
+ ✓ Compiled in 368ms (317 modules)
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 9.2s (1241 modules)
+ GET /api/system/health 404 in 9820ms
+ ○ Compiling /api/test/full-flow ...
+ ✓ Compiled /api/test/full-flow in 977ms (796 modules)
+bigint: Failed to load bindings, pure JS will be used (try npm run rebuild?)
+[Full-Flow] Starting end-to-end pipeline test...
+[CloakService] Initialized with RPC: https://beam.rpcfast.com/
+[MagicBlock] Initialized with endpoint: https://api.magicblock.io/v1
+[MagicBlock] Transaction Execution Layer RPC: https://beam.rpcfast.com/
+[MagicBlock] Verifying execution layer health...
+[Full-Flow] Step 1: RPC & MagicBlock Health: operational
+[Full-Flow] Step 2: Context prepared for user_6sltn
+[Full-Flow] Step 3: Executing shielded transfer via MagicBlock routing...
+[MagicBlock] New routing request initiated...
+[MagicBlock] Initiating environment handshake with endpoint: https://api.magicblock.io/v1...
+[MagicBlock] [FETCH] POST https://api.magicblock.io/v1/execution/prepare - Body: { recipient: "GfK6fP7vW1uN5N5m8WJp3Xk9R8z6Jp6Y7a3Z1Xm2Yn3B" }
+[MagicBlock] Environment ready. Reference: MB-EXEC-15FNJDY2
+Private transfer failed: Error: provided secretKey is invalid
+    at Keypair.fromSecretKey (webpack-internal:///(rsc)/../../node_modules/@solana/web3.js/lib/index.esm.js:9068:17)
+    at CloakService.executePrivateTransfer (webpack-internal:///(rsc)/../../packages/solana/src/cloak.ts:81:88)
+    at MagicBlockService.processAndRoutePrivatePayment (webpack-internal:///(rsc)/./lib/magicblock-service.ts:30:52)
+    at async GET (webpack-internal:///(rsc)/./app/api/test/full-flow/route.ts:36:32)
+    at async C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:57228
+    at async eT.execute (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:46851)
+    at async eT.handle (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:58760)
+    at async doRender (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1366:42)
+    at async cacheEntry.responseCache.get.routeKind (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1588:28)
+    at async DevServer.renderToResponseWithComponentsImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1496:28)
+    at async DevServer.renderPageComponent (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1924:24)
+    at async DevServer.renderToResponseImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1962:32)
+    at async DevServer.pipeImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\next-server.js:272:17)
+    at async DevServer.handleRequestImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:818:17)
+    at async C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\dev\next-dev-server.js:339:20
+    at async Span.traceAsyncFn (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\trace\trace.js:154:20)
+    at async DevServer.handleRequest (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\dev\next-dev-server.js:336:24)
+    at async invokeRender (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\router-server.js:179:21)
+    at async handleRequest (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\router-server.js:359:24)
+    at async requestHandlerImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\router-server.js:383:13)
+    at async Server.requestListener (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\start-server.js:141:13)
+[MagicBlock] Routing error: Error: Private transfer execution failed: provided secretKey is invalid
+    at CloakService.executePrivateTransfer (webpack-internal:///(rsc)/../../packages/solana/src/cloak.ts:128:19)
+    at MagicBlockService.processAndRoutePrivatePayment (webpack-internal:///(rsc)/./lib/magicblock-service.ts:30:52)
+    at async GET (webpack-internal:///(rsc)/./app/api/test/full-flow/route.ts:36:32)
+    at async C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:57228
+    at async eT.execute (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:46851)
+    at async eT.handle (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:58760)
+    at async doRender (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1366:42)
+    at async cacheEntry.responseCache.get.routeKind (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1588:28)
+    at async DevServer.renderToResponseWithComponentsImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1496:28)
+    at async DevServer.renderPageComponent (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1924:24)
+    at async DevServer.renderToResponseImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1962:32)
+    at async DevServer.pipeImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\next-server.js:272:17)
+    at async DevServer.handleRequestImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:818:17)
+    at async C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\dev\next-dev-server.js:339:20
+    at async Span.traceAsyncFn (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\trace\trace.js:154:20)
+    at async DevServer.handleRequest (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\dev\next-dev-server.js:336:24)
+    at async invokeRender (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\router-server.js:179:21)
+    at async handleRequest (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\router-server.js:359:24)
+    at async requestHandlerImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\router-server.js:383:13)
+    at async Server.requestListener (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\start-server.js:141:13)
+[Full-Flow] Pipeline failed: Error: MagicBlock Routing Layer failed: Private transfer execution failed: provided secretKey is invalid
+    at MagicBlockService.processAndRoutePrivatePayment (webpack-internal:///(rsc)/./lib/magicblock-service.ts:48:19)
+    at async GET (webpack-internal:///(rsc)/./app/api/test/full-flow/route.ts:36:32)
+    at async C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:57228
+    at async eT.execute (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:46851)
+    at async eT.handle (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:58760)
+    at async doRender (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1366:42)
+    at async cacheEntry.responseCache.get.routeKind (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1588:28)
+    at async DevServer.renderToResponseWithComponentsImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1496:28)
+    at async DevServer.renderPageComponent (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1924:24)
+    at async DevServer.renderToResponseImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1962:32)
+    at async DevServer.pipeImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\next-server.js:272:17)
+    at async DevServer.handleRequestImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:818:17)
+    at async C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\dev\next-dev-server.js:339:20
+    at async Span.traceAsyncFn (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\trace\trace.js:154:20)
+    at async DevServer.handleRequest (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\dev\next-dev-server.js:336:24)
+    at async invokeRender (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\router-server.js:179:21)
+    at async handleRequest (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\router-server.js:359:24)
+    at async requestHandlerImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\router-server.js:383:13)
+    at async Server.requestListener (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\start-server.js:141:13)
+ GET /api/test/full-flow 500 in 1947ms
+ ✓ Compiled in 1872ms (448 modules)
+ ✓ Compiled in 963ms (1244 modules)
+bigint: Failed to load bindings, pure JS will be used (try npm run rebuild?)
+[Full-Flow] Starting end-to-end pipeline test...
+[CloakService] Initialized with RPC: https://beam.rpcfast.com/
+[MagicBlock] Initialized with endpoint: https://api.magicblock.io/v1
+[MagicBlock] Transaction Execution Layer RPC: https://beam.rpcfast.com/
+[MagicBlock] Verifying execution layer health...
+[Full-Flow] Step 1: RPC & MagicBlock Health: operational
+[Full-Flow] Step 2: Context prepared for user_5w1y1h
+[Full-Flow] Step 3: Executing shielded transfer via MagicBlock routing...
+[MagicBlock] New routing request initiated...
+[MagicBlock] Initiating environment handshake with endpoint: https://api.magicblock.io/v1...
+[MagicBlock] [FETCH] POST https://api.magicblock.io/v1/execution/prepare - Body: { recipient: "GfK6fP7vW1uN5N5m8WJp3Xk9R8z6Jp6Y7a3Z1Xm2Yn3B" }
+[MagicBlock] Environment ready. Reference: MB-EXEC-KVQMCXA4
+Private transfer failed: TokenOwnerOffCurveError
+    at getAssociatedTokenAddressSync (webpack-internal:///(rsc)/../../packages/solana/node_modules/@solana/spl-token/lib/esm/state/mint.js:146:15)
+    at CloakService.getTokenAccountAddress (webpack-internal:///(rsc)/../../packages/solana/src/cloak.ts:60:96)
+    at CloakService.executePrivateTransfer (webpack-internal:///(rsc)/../../packages/solana/src/cloak.ts:87:54)
+    at async MagicBlockService.processAndRoutePrivatePayment (webpack-internal:///(rsc)/./lib/magicblock-service.ts:30:28)
+    at async GET (webpack-internal:///(rsc)/./app/api/test/full-flow/route.ts:37:32)
+    at async C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:57228
+    at async eT.execute (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:46851)
+    at async eT.handle (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:58760)
+    at async doRender (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1366:42)
+    at async cacheEntry.responseCache.get.routeKind (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1588:28)
+    at async DevServer.renderToResponseWithComponentsImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1496:28)
+    at async DevServer.renderPageComponent (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1924:24)
+    at async DevServer.renderToResponseImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1962:32)
+    at async DevServer.pipeImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\next-server.js:272:17)
+    at async DevServer.handleRequestImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:818:17)
+    at async C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\dev\next-dev-server.js:339:20
+    at async Span.traceAsyncFn (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\trace\trace.js:154:20)
+    at async DevServer.handleRequest (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\dev\next-dev-server.js:336:24)
+    at async invokeRender (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\router-server.js:179:21)
+    at async handleRequest (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\router-server.js:359:24)
+    at async requestHandlerImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\router-server.js:383:13)
+    at async Server.requestListener (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\start-server.js:141:13)
+[MagicBlock] Routing error: Error: Private transfer execution failed: 
+    at CloakService.executePrivateTransfer (webpack-internal:///(rsc)/../../packages/solana/src/cloak.ts:128:19)
+    at async MagicBlockService.processAndRoutePrivatePayment (webpack-internal:///(rsc)/./lib/magicblock-service.ts:30:28)
+    at async GET (webpack-internal:///(rsc)/./app/api/test/full-flow/route.ts:37:32)
+    at async C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:57228
+    at async eT.execute (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:46851)
+    at async eT.handle (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:58760)
+    at async doRender (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1366:42)
+    at async cacheEntry.responseCache.get.routeKind (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1588:28)
+    at async DevServer.renderToResponseWithComponentsImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1496:28)
+    at async DevServer.renderPageComponent (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1924:24)
+    at async DevServer.renderToResponseImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1962:32)
+    at async DevServer.pipeImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\next-server.js:272:17)
+    at async DevServer.handleRequestImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:818:17)
+    at async C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\dev\next-dev-server.js:339:20
+    at async Span.traceAsyncFn (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\trace\trace.js:154:20)
+    at async DevServer.handleRequest (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\dev\next-dev-server.js:336:24)
+    at async invokeRender (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\router-server.js:179:21)
+    at async handleRequest (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\router-server.js:359:24)
+    at async requestHandlerImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\router-server.js:383:13)
+    at async Server.requestListener (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\start-server.js:141:13)
+[Full-Flow] Pipeline failed: Error: MagicBlock Routing Layer failed: Private transfer execution failed: 
+    at MagicBlockService.processAndRoutePrivatePayment (webpack-internal:///(rsc)/./lib/magicblock-service.ts:48:19)
+    at async GET (webpack-internal:///(rsc)/./app/api/test/full-flow/route.ts:37:32)
+    at async C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:57228
+    at async eT.execute (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:46851)
+    at async eT.handle (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:58760)
+    at async doRender (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1366:42)
+    at async cacheEntry.responseCache.get.routeKind (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1588:28)
+    at async DevServer.renderToResponseWithComponentsImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1496:28)
+    at async DevServer.renderPageComponent (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1924:24)
+    at async DevServer.renderToResponseImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1962:32)
+    at async DevServer.pipeImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\next-server.js:272:17)
+    at async DevServer.handleRequestImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:818:17)
+    at async C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\dev\next-dev-server.js:339:20
+    at async Span.traceAsyncFn (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\trace\trace.js:154:20)
+    at async DevServer.handleRequest (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\dev\next-dev-server.js:336:24)
+    at async invokeRender (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\router-server.js:179:21)
+    at async handleRequest (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\router-server.js:359:24)
+    at async requestHandlerImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\router-server.js:383:13)
+    at async Server.requestListener (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\start-server.js:141:13)
+ GET /api/test/full-flow 500 in 811ms

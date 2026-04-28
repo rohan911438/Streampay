@@ -20,7 +20,8 @@ const endpoint =
   clusterApiUrl(network);
 
 if (typeof window !== "undefined") {
-  console.log("[StreamPay] Initializing frontend with RPC:", endpoint.split('?')[0]);
+  const rpcLabel = endpoint && typeof endpoint === 'string' ? endpoint.split('?')[0] : 'Unknown';
+  console.log("[StreamPay] Initializing frontend with RPC:", rpcLabel);
 }
 
 const WALLET_STORAGE_KEY = "walletName";
