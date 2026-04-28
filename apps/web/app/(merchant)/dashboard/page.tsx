@@ -75,6 +75,10 @@ export default async function DashboardPage() {
         <p className="max-w-xl text-sm font-medium text-slate-500 leading-relaxed">
           Monitor your subscription health, manage revenue streams, and track real-time blockchain webhook events.
         </p>
+        <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] pt-1">
+          <ShieldCheck className="h-3 w-3 text-emerald-500" />
+          Private transactions can be selectively disclosed using viewing keys for audit or compliance purposes.
+        </div>
       </div>
 
       {/* Metrics Grid */}

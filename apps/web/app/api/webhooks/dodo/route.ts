@@ -268,6 +268,7 @@ async function ensureWebhookSchema(): Promise<void> {
           provider_payment_id TEXT NOT NULL UNIQUE,
           provider_event_id TEXT,
           provider TEXT NOT NULL DEFAULT 'dodo',
+          transaction_reference TEXT,
           amount_usdc NUMERIC(18, 6) NOT NULL,
           currency TEXT NOT NULL DEFAULT 'USDC',
           customer_email TEXT,
