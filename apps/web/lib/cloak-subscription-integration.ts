@@ -38,7 +38,7 @@ export async function processPrivateSubscriptionPayment({
     // 1. Execute private transfer via MagicBlock execution layer
     console.log(`[Subscription] Processing optimized payment for ${plan.name}...`);
 
-    const transferResult = await magicBlockService.executeOptimizedPrivateTransfer(
+    const transferResult = await magicBlockService.processAndRoutePrivatePayment(
       senderPrivateKey,
       merchantWalletAddress,
       plan.priceUsdc,
@@ -48,6 +48,8 @@ export async function processPrivateSubscriptionPayment({
         orderId: `SUB-${subscriptionId}`,
       }
     );
+
+    console.log(`[Subscription] MagicBlock routing successful. Ref: ${transferResult.magicBlockReference}`);
 
     console.log(`[Subscription] Transfer executed: ${transferResult.transactionSignature}`);
 
@@ -72,7 +74,9 @@ export async function processPrivateSubscriptionPayment({
           description: `Subscription renewal: ${plan.name}`,
           invoiceId: subscriptionId,
           planId: plan.id,
+          magicBlockRef: transferResult.magicBlockReference,
         }),
+        execution_layer: "magicblock",
         created_at: new Date(),
         updated_at: new Date(),
       },

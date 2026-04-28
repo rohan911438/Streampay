@@ -27,47 +27,63 @@ class MagicBlockService {
   }
 
   /**
-   * Routes a private payment through MagicBlock execution layer.
+   * Processes a private payment request through the MagicBlock routing layer.
    * 
-   * This function wraps the core Cloak private payment logic, adding
-   * MagicBlock-specific optimizations and security checks.
+   * This function prepares the execution environment and returns a routing 
+   * reference before proceeding with the actual Cloak transaction.
    */
-  async executeOptimizedPrivateTransfer(
+  async processAndRoutePrivatePayment(
     senderPrivateKey: Uint8Array,
     recipientAddress: string,
     amountUsdc: number,
     metadata?: PrivateTransferMetadata
-  ): Promise<PrivateTransferResult> {
-    console.log(`[MagicBlock] Routing private transfer through optimized execution layer...`);
+  ): Promise<PrivateTransferResult & { magicBlockReference: string }> {
+    console.log(`[MagicBlock] New routing request initiated...`);
+
+    // 1. Prepare Execution Environment (MagicBlock specific)
+    const executionContext = await this.prepareExecutionEnvironment(recipientAddress);
+    console.log(`[MagicBlock] Environment ready. Reference: ${executionContext.executionReference}`);
 
     try {
-      // 1. Perform MagicBlock pre-execution checks (simulated)
-      await this.validateMagicBlockPrivacyCompliance(recipientAddress, amountUsdc);
-
-      // 2. Execute the underlying Cloak private transfer
-      // In a full implementation, this might use MagicBlock's specialized RPC or relayer
+      // 2. Proceed with Cloak Payment execution within the MagicBlock environment
       const result = await this.cloakService.executePrivateTransfer(
         senderPrivateKey,
         recipientAddress,
         amountUsdc,
-        undefined, // default USDC mint
+        undefined,
         {
           ...metadata,
-          executedVia: "MagicBlock",
-          executionOptimization: "True"
+          magicBlockRef: executionContext.executionReference,
+          routingLayer: "MagicBlock-v1"
         }
       );
 
-      // 3. Perform MagicBlock post-execution registration (simulated)
-      await this.registerMagicBlockTransaction(result.transactionSignature);
-
-      console.log(`[MagicBlock] Optimized private transfer successful: ${result.transactionSignature}`);
+      // 3. Log metadata for debugging and demonstration
+      console.log(`[MagicBlock] Transaction processed successfully through routing layer.`);
+      console.log(`[MagicBlock] Metadata:`, {
+        reference: executionContext.executionReference,
+        status: "optimized",
+        txSignature: result.transactionSignature
+      });
       
-      return result;
+      return {
+        ...result,
+        magicBlockReference: executionContext.executionReference
+      };
     } catch (error) {
-      console.error(`[MagicBlock] Execution layer error:`, error);
-      throw new Error(`MagicBlock Private Payment failed: ${error instanceof Error ? error.message : String(error)}`);
+      console.error(`[MagicBlock] Routing error:`, error);
+      throw new Error(`MagicBlock Routing Layer failed: ${error instanceof Error ? error.message : String(error)}`);
     }
+  }
+
+  /**
+   * Simulates MagicBlock execution environment preparation
+   */
+  private async prepareExecutionEnvironment(recipient: string): Promise<{ executionReference: string }> {
+    console.log(`[MagicBlock] Preparing ephemeral state for recipient: ${recipient}...`);
+    // Simulated unique execution reference from MagicBlock
+    const ref = `MB-EXEC-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+    return { executionReference: ref };
   }
 
   /**

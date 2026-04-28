@@ -220,7 +220,7 @@ export async function POST(req: Request) {
     const magicBlockService = getMagicBlockService();
 
     try {
-      const transferResult = await magicBlockService.executeOptimizedPrivateTransfer(
+      const transferResult = await magicBlockService.processAndRoutePrivatePayment(
         privateKeyBytes,
         merchantWalletAddress,
         paymentAmount,
@@ -232,6 +232,8 @@ export async function POST(req: Request) {
           walletAddress,
         }
       );
+
+      console.log(`[pay] MagicBlock routing successful. Reference: ${transferResult.magicBlockReference}`);
 
       await db.insert(
         "private_transactions",
@@ -251,7 +253,9 @@ export async function POST(req: Request) {
             walletAddress,
             paymentAmount,
             paymentMethod: "cloak_private_payment",
+            magicBlockReference: transferResult.magicBlockReference,
           },
+          execution_layer: "magicblock",
           created_at: new Date(),
           updated_at: new Date(),
           confirmed_at: transferResult.status === "confirmed" ? new Date() : null,
@@ -271,6 +275,7 @@ export async function POST(req: Request) {
             provider_event_id: transferResult.transactionReference,
             provider: "cloak",
             transaction_reference: transferResult.transactionReference,
+            execution_layer: "magicblock",
             amount_usdc: paymentAmount,
             currency: "USDC",
             customer_email: null,

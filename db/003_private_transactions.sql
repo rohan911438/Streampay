@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS private_transactions (
   slot BIGINT,
   metadata JSONB,
   error_message TEXT,
+  execution_layer TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   confirmed_at TIMESTAMPTZ,

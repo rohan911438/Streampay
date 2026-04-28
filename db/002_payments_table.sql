@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS payments (
   currency TEXT NOT NULL DEFAULT 'USDC',
   customer_email TEXT,
   wallet_address TEXT,
+  execution_layer TEXT,
   paid_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   payload JSONB,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
