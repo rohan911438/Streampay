@@ -123,6 +123,7 @@ export async function POST(req: Request) {
       subscriptionId: finalSubscriptionId,
       amountUsdc: finalAmountUsdc ?? undefined,
       eventType: "payment_success",
+      provider: "dodo",
       payload: {
         source: "testing_simulation",
         timestamp: new Date().toISOString(),

@@ -304,7 +304,7 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
           </div>
 
           <p className="text-center text-sm text-slate-500 leading-relaxed px-4">
-            Your payment has been processed privately. No details regarding the amount or recipient are visible on the public ledger.
+            Your payment has been processed privately using Cloak. This means your transaction details—including the amount and recipient—are completely hidden on the blockchain, ensuring your financial activity remains confidential and secure.
           </p>
 
           <Button 

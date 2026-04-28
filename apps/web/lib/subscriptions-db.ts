@@ -62,6 +62,7 @@ export type DashboardMetrics = {
 export type DashboardEvent = {
   id: string;
   eventType: string;
+  provider: "dodo" | "cloak" | string | null;
   occurredAt: string;
   walletAddress: string | null;
   amountUsdc: number | null;
@@ -277,12 +278,14 @@ export async function recordSubscriptionEvent(input: {
     | "webhook_processed"
     | "subscription_created"
     | "subscription_canceled";
+  provider?: "dodo" | "cloak" | string | null;
   providerEventId?: string | null;
   payload?: Record<string, unknown>;
 }): Promise<void> {
   await jsonDb.recordSubscriptionEvent({
     subscriptionId: input.subscriptionId ?? input.userId,
     eventType: input.eventType,
+    provider: input.provider ?? "dodo",
     amountUsdc: input.amountUsdc ?? null,
     metadata: {
       userId: input.userId,
@@ -327,6 +330,7 @@ export async function getDashboardRecentEvents(limit = 6): Promise<DashboardEven
     .map((event) => ({
       id: event.id,
       eventType: event.eventType,
+      provider: event.provider ?? "dodo",
       occurredAt: event.createdAt,
       walletAddress: (() => {
         const userId = event.metadata && typeof event.metadata.userId === "string" ? event.metadata.userId : null;

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { getCloakService } from "@paystream/solana";
 import { db } from "@paystream/db";
+import { recordSubscriptionEvent } from "@/lib/subscriptions-db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -330,6 +331,21 @@ export async function POST(req: Request) {
         },
         "id"
       );
+
+      // Record to dashboard (jsonDb)
+      await recordSubscriptionEvent({
+        userId,
+        subscriptionId,
+        amountUsdc: paymentAmount,
+        eventType: "payment_success",
+        provider: "cloak",
+        providerEventId: transferResult.transactionSignature,
+        payload: {
+          method: "cloak_private_payment",
+          planId: plan.id,
+          walletAddress,
+        }
+      });
 
       return NextResponse.json(
         {

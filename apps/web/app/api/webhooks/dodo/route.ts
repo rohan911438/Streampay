@@ -2,7 +2,7 @@ import { createHash, createHmac, timingSafeEqual } from "crypto";
 import { NextResponse } from "next/server";
 import { db } from "@paystream/db";
 import { recordDodoWebhookEvent } from "@/lib/dodo-webhook-state";
-import { isLikelySolanaWalletAddress } from "@/lib/subscriptions-db";
+import { isLikelySolanaWalletAddress, recordSubscriptionEvent } from "@/lib/subscriptions-db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -527,14 +527,25 @@ async function handlePaymentSucceeded(
     return;
   }
 
-  await insertSubscriptionEvent(client, {
-    userId: context.userId,
-    subscriptionId: context.subscriptionId,
-    amountUsdc: amountUsdc ?? 0,
-    eventType: "payment_success",
-    providerEventId: eventDedupeKey,
-    payload,
-  });
+    await insertSubscriptionEvent(client, {
+      userId: context.userId,
+      subscriptionId: context.subscriptionId,
+      amountUsdc: amountUsdc ?? 0,
+      eventType: "payment_success",
+      providerEventId: eventDedupeKey,
+      payload,
+    });
+
+    // Record to dashboard (jsonDb)
+    await recordSubscriptionEvent({
+      userId: context.userId,
+      subscriptionId: context.subscriptionId,
+      amountUsdc: amountUsdc ?? 0,
+      eventType: "payment_success",
+      provider: "dodo",
+      providerEventId: eventDedupeKey,
+      payload,
+    });
 }
 
 async function handleSubscriptionActiveLike(
@@ -563,12 +574,23 @@ async function handleSubscriptionActiveLike(
     payload,
   });
 
-  if (!inserted) {
-    console.info("[dodo-webhook] duplicate subscription event ignored", {
+    if (!inserted) {
+      console.info("[dodo-webhook] duplicate subscription event ignored", {
+        providerEventId: eventDedupeKey,
+      });
+      return;
+    }
+
+    // Record to dashboard (jsonDb)
+    await recordSubscriptionEvent({
+      userId: context.userId,
+      subscriptionId: context.subscriptionId,
+      amountUsdc: ids.amountUsdc,
+      eventType: ids.eventType === "subscription.active" ? "subscription_created" : "webhook_processed",
+      provider: "dodo",
       providerEventId: eventDedupeKey,
+      payload,
     });
-    return;
-  }
 
   await client.query(
     `UPDATE subscriptions

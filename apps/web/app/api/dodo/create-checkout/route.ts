@@ -73,6 +73,7 @@ export async function POST(req: Request) {
     await jsonDb.recordSubscriptionEvent({
       subscriptionId: subscription.id,
       eventType: "subscription_created",
+      provider: "dodo",
       amountUsdc: plan.priceUsdc,
       metadata: {
         email,

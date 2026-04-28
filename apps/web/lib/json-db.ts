@@ -57,6 +57,7 @@ export interface SubscriptionEvent {
   id: string;
   subscriptionId: string;
   eventType: string;
+  provider?: "dodo" | "cloak" | string | null;
   amountUsdc: number | null;
   metadata: Record<string, unknown> | null;
   createdAt: string;
@@ -220,6 +221,7 @@ export const jsonDb = {
   async recordSubscriptionEvent(input: {
     subscriptionId: string;
     eventType: string;
+    provider?: "dodo" | "cloak" | string | null;
     amountUsdc?: number | null;
     metadata?: Record<string, unknown> | null;
   }): Promise<SubscriptionEvent> {
@@ -228,6 +230,7 @@ export const jsonDb = {
       id: randomUUID(),
       subscriptionId: input.subscriptionId,
       eventType: input.eventType,
+      provider: input.provider || null,
       amountUsdc: input.amountUsdc || null,
       metadata: input.metadata || null,
       createdAt: new Date().toISOString(),

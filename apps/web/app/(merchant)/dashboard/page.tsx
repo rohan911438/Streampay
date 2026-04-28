@@ -16,7 +16,9 @@ import {
   Zap, 
   Clock, 
   MousePointer2,
-  BarChart3
+  BarChart3,
+  ShieldCheck,
+  Globe
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -106,10 +108,21 @@ export default async function DashboardPage() {
                       <div className="flex-1 space-y-1">
                         <div className="flex items-center justify-between">
                           <p className="text-sm font-bold text-slate-900">{event.eventType}</p>
-                          <span className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                            <Clock className="h-3 w-3" />
-                            {new Date(event.occurredAt).toLocaleTimeString()}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <div className={cn(
+                              "flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest",
+                              event.provider === "cloak" 
+                                ? "bg-slate-900 text-emerald-400 border border-slate-800" 
+                                : "bg-blue-50 text-blue-600 border border-blue-100"
+                            )}>
+                              {event.provider === "cloak" ? <ShieldCheck className="h-2.5 w-2.5" /> : <Globe className="h-2.5 w-2.5" />}
+                              {event.provider === "cloak" ? "Private" : "Public"}
+                            </div>
+                            <span className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                              <Clock className="h-3 w-3" />
+                              {new Date(event.occurredAt).toLocaleTimeString()}
+                            </span>
+                          </div>
                         </div>
                         <p className="text-xs text-slate-500 font-medium">
                           {formatWalletLabel(event.walletAddress)}

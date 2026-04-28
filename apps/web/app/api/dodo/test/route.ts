@@ -156,6 +156,7 @@ export async function POST(req: Request) {
       subscriptionId,
       amountUsdc,
       eventType: status === 'success' ? 'payment_success' : 'payment_failed',
+      provider: 'dodo',
       providerEventId: `sim_${Date.now()}`,
       payload: {
         source: 'simulation',

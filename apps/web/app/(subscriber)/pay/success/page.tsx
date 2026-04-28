@@ -221,7 +221,7 @@ export default function PaymentSuccessPage() {
             Cloak Private Payment
           </p>
           <p className="text-xs text-emerald-700">
-            This subscription was activated through the private Cloak payment flow, with the transaction recorded separately from the standard checkout path.
+            Your payment was processed privately using Cloak. This means your transaction details—including the amount and recipient—are completely hidden on the blockchain, ensuring your financial activity remains confidential and secure.
           </p>
         </div>
       )}
