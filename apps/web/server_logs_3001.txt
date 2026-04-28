@@ -1,0 +1,65 @@
+
+> web@0.1.0 dev
+> next dev -p 3000 -p 3001
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3001
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 4.2s
+ ○ Compiling /api/magicblock/test ...
+ ✓ Compiled /api/magicblock/test in 1812ms (315 modules)
+bigint: Failed to load bindings, pure JS will be used (try npm run rebuild?)
+ ⨯ Error: Non-base58 character
+    at Object.decode (webpack-internal:///(rsc)/../../node_modules/@solana/web3.js/node_modules/base-x/src/index.js:115:11)
+    at new PublicKey (webpack-internal:///(rsc)/../../node_modules/@solana/web3.js/lib/index.esm.js:244:69)
+    at new CloakService (webpack-internal:///(rsc)/../../packages/solana/src/cloak.ts:42:44)
+    at initializeCloakService (webpack-internal:///(rsc)/../../packages/solana/src/cloak.ts:241:20)
+    at getCloakService (webpack-internal:///(rsc)/../../packages/solana/src/cloak.ts:248:16)
+    at new MagicBlockService (webpack-internal:///(rsc)/./lib/magicblock-service.ts:12:95)
+    at getMagicBlockService (webpack-internal:///(rsc)/./lib/magicblock-service.ts:137:25)
+    at GET (webpack-internal:///(rsc)/./app/api/magicblock/test/route.ts:17:101)
+    at C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:57234
+    at C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\trace\tracer.js:140:36
+    at NoopContextManager.with (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:7062)
+    at ContextAPI.with (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:518)
+    at NoopTracer.startActiveSpan (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:18093)
+    at ProxyTracer.startActiveSpan (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:18854)
+    at C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\trace\tracer.js:122:103
+    at NoopContextManager.with (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:7062)
+    at ContextAPI.with (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:518)
+    at NextTracerImpl.trace (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\trace\tracer.js:122:28)
+    at C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:48896
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:63:14)
+    at Object.wrap (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:40958)
+    at C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:47472
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:63:14)
+    at Object.wrap (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:38293)
+    at C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:47434
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:63:14)
+    at eT.execute (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:46881)
+    at eT.handle (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:58771)
+    at doRender (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1366:60)
+    at cacheEntry.responseCache.get.routeKind (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1588:34)
+    at ResponseCache.get (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\response-cache\index.js:49:26)
+    at DevServer.renderToResponseWithComponentsImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\base-server.js:1496:53)
+ GET /api/magicblock/test 500 in 2714ms
+ ✓ Compiled in 835ms (315 modules)
+bigint: Failed to load bindings, pure JS will be used (try npm run rebuild?)
+[MagicBlock] Initialized with endpoint: https://api.magicblock.io/v1
+[API] MagicBlock Connectivity Test initiated...
+[MagicBlock] [TEST] Initiating connectivity test...
+[MagicBlock] [TEST] Request Payload: {
+  from: 'GfK6fP7vW1uN5N5m8WJp3Xk9R8z6Jp6Y7a3Z1Xm2Yn3B',
+  to: 'Hk4p6N7vW1uN5N5m8WJp3Xk9R8z6Jp6Y7a3Z1Xm2Yn3C',
+  mint: 'EPjFWdd5Au17i3ANF1qLFbgcCzKxwKnhNzrGg44oMWRM',
+  amount: 1000
+}
+[MagicBlock] [FETCH] POST https://api.magicblock.io/v1/transfer/build
+[MagicBlock] [TEST] Response received: {
+  transactionBase64: 'AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAEDm9S+ZfJ+R3V6S5W1/UfO+K/3qX1p3vH6S9U/W1Pz0g8BAgM=',
+  recentBlockhash: '5XzY1x5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5',
+  requiredSigners: [ 'GfK6fP7vW1uN5N5m8WJp3Xk9R8z6Jp6Y7a3Z1Xm2Yn3B' ]
+}
+ GET /api/magicblock/test 200 in 550ms

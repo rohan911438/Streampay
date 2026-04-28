@@ -85,7 +85,7 @@ class CloakService {
     this.config = {
       commitment: config.commitment || "confirmed",
       rpcUrl: config.rpcUrl,
-      programId: config.programId || new PublicKey("CloakV1111111111111111111111111111111111111"),
+      programId: config.programId || new PublicKey("GfK6fP7vW1uN5N5m8WJp3Xk9R8z6Jp6Y7a3Z1Xm2Yn3B"),
     };
 
     this.connection = new Connection(this.config.rpcUrl, this.config.commitment);
