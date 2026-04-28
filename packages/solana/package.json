@@ -9,6 +9,7 @@
     "./constants": "./src/constants.ts"
   },
   "dependencies": {
-    "@solana/web3.js": "^1.98.0"
+    "@solana/web3.js": "^1.98.0",
+    "@solana/spl-token": "^0.3.10"
   }
 }
