@@ -58,6 +58,7 @@ export interface SubscriptionEvent {
   subscriptionId: string;
   eventType: string;
   provider?: "dodo" | "cloak" | string | null;
+  executionLayer?: "magicblock" | string | null;
   amountUsdc: number | null;
   metadata: Record<string, unknown> | null;
   createdAt: string;
@@ -222,6 +223,7 @@ export const jsonDb = {
     subscriptionId: string;
     eventType: string;
     provider?: "dodo" | "cloak" | string | null;
+    executionLayer?: "magicblock" | string | null;
     amountUsdc?: number | null;
     metadata?: Record<string, unknown> | null;
   }): Promise<SubscriptionEvent> {
@@ -231,6 +233,7 @@ export const jsonDb = {
       subscriptionId: input.subscriptionId,
       eventType: input.eventType,
       provider: input.provider || null,
+      executionLayer: input.executionLayer || null,
       amountUsdc: input.amountUsdc || null,
       metadata: input.metadata || null,
       createdAt: new Date().toISOString(),

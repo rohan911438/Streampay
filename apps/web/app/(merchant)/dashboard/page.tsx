@@ -122,6 +122,12 @@ export default async function DashboardPage() {
                               {event.provider === "cloak" ? <ShieldCheck className="h-2.5 w-2.5" /> : <Globe className="h-2.5 w-2.5" />}
                               {event.provider === "cloak" ? "Private" : "Public"}
                             </div>
+                            {event.executionLayer === "magicblock" && (
+                              <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[8px] font-black uppercase tracking-widest border border-emerald-400">
+                                <Zap className="h-2.5 w-2.5" />
+                                Secured
+                              </div>
+                            )}
                             <span className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                               <Clock className="h-3 w-3" />
                               {new Date(event.occurredAt).toLocaleTimeString()}

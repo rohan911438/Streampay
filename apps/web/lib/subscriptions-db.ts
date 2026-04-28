@@ -63,6 +63,7 @@ export type DashboardEvent = {
   id: string;
   eventType: string;
   provider: "dodo" | "cloak" | string | null;
+  executionLayer?: "magicblock" | string | null;
   occurredAt: string;
   walletAddress: string | null;
   amountUsdc: number | null;
@@ -279,6 +280,7 @@ export async function recordSubscriptionEvent(input: {
     | "subscription_created"
     | "subscription_canceled";
   provider?: "dodo" | "cloak" | string | null;
+  executionLayer?: "magicblock" | string | null;
   providerEventId?: string | null;
   payload?: Record<string, unknown>;
 }): Promise<void> {
@@ -286,6 +288,7 @@ export async function recordSubscriptionEvent(input: {
     subscriptionId: input.subscriptionId ?? input.userId,
     eventType: input.eventType,
     provider: input.provider ?? "dodo",
+    executionLayer: input.executionLayer ?? null,
     amountUsdc: input.amountUsdc ?? null,
     metadata: {
       userId: input.userId,
@@ -337,6 +340,7 @@ export async function getDashboardRecentEvents(limit = 6): Promise<DashboardEven
         return userId ? usersById.get(userId) ?? null : null;
       })(),
       amountUsdc: event.amountUsdc,
+      executionLayer: event.executionLayer,
     }));
 }
 

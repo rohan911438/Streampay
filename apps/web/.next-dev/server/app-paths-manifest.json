@@ -1,6 +1,6 @@
 {
   "/page": "app/page.js",
   "/(subscriber)/pay/[slug]/page": "app/(subscriber)/pay/[slug]/page.js",
-  "/(merchant)/dashboard/page": "app/(merchant)/dashboard/page.js",
-  "/(merchant)/analytics/page": "app/(merchant)/analytics/page.js"
+  "/(merchant)/analytics/page": "app/(merchant)/analytics/page.js",
+  "/(merchant)/dashboard/page": "app/(merchant)/dashboard/page.js"
 }

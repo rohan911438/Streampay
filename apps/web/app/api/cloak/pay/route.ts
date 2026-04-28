@@ -344,6 +344,7 @@ export async function POST(req: Request) {
         amountUsdc: paymentAmount,
         eventType: "payment_success",
         provider: "cloak",
+        executionLayer: "magicblock",
         providerEventId: transferResult.transactionSignature,
         payload: {
           method: "cloak_private_payment",

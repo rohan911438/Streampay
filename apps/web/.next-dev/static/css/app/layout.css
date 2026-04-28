@@ -1779,6 +1779,10 @@ video {
 .border-white\/10 {
   border-color: rgb(255 255 255 / 0.1);
 }
+.border-emerald-400 {
+  --tw-border-opacity: 1;
+  border-color: rgb(52 211 153 / var(--tw-border-opacity, 1));
+}
 .\!bg-emerald-500 {
   --tw-bg-opacity: 1 !important;
   background-color: rgb(16 185 129 / var(--tw-bg-opacity, 1)) !important;
