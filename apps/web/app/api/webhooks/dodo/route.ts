@@ -267,6 +267,7 @@ async function ensureWebhookSchema(): Promise<void> {
           subscription_id UUID,
           provider_payment_id TEXT NOT NULL UNIQUE,
           provider_event_id TEXT,
+          provider TEXT NOT NULL DEFAULT 'dodo',
           amount_usdc NUMERIC(18, 6) NOT NULL,
           currency TEXT NOT NULL DEFAULT 'USDC',
           customer_email TEXT,
@@ -492,13 +493,14 @@ async function handlePaymentSucceeded(
       subscription_id,
       provider_payment_id,
       provider_event_id,
+      provider,
       amount_usdc,
       currency,
       customer_email,
       wallet_address,
       paid_at,
       payload
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::timestamptz, $11::jsonb)
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::timestamptz, $12::jsonb)
     ON CONFLICT (provider_payment_id) DO NOTHING
     RETURNING id`,
     [
@@ -507,6 +509,7 @@ async function handlePaymentSucceeded(
       context.subscriptionId,
       dedupePaymentId,
       eventDedupeKey,
+      "dodo",
       amountUsdc ?? 0,
       ids.currency ?? "USDC",
       ids.customerEmail,

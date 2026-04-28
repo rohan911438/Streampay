@@ -63,6 +63,8 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
     priceUsdc: 49,
     billingInterval: "monthly",
   });
+  const [paymentSuccess, setPaymentSuccess] = useState<boolean>(false);
+  const [successData, setSuccessData] = useState<{ signature: string; id: string } | null>(null);
   const { connected, publicKey, wallets } = useWallet();
 
   useEffect(() => {
@@ -191,6 +193,7 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
         },
         body: JSON.stringify({
           walletAddress: publicKey.toBase58(),
+          planId: plan.id,
           amount: plan.priceUsdc,
         }),
       });
@@ -202,16 +205,11 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
         return;
       }
 
-      const params = new URLSearchParams({
-        private: "true",
-        subscription_id: data.subscriptionId ?? "",
+      setSuccessData({
+        signature: data.transactionSignature || "",
+        id: data.subscriptionId || ""
       });
-
-      if (data.transactionSignature) {
-        params.append("transaction_signature", data.transactionSignature);
-      }
-
-      window.location.assign(`/pay/success?${params.toString()}`);
+      setPaymentSuccess(true);
     } catch {
       setActionError("A network error occurred. Please try again.");
     } finally {
@@ -268,6 +266,56 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
     } finally {
       setIsTestSimulating(false);
     }
+  }
+
+  if (paymentSuccess) {
+    return (
+      <Card className="border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.1)] overflow-hidden animate-in zoom-in-95 duration-500">
+        <div className="bg-emerald-600 p-8 text-white flex flex-col items-center text-center space-y-4">
+          <div className="h-20 w-20 rounded-full bg-white/20 flex items-center justify-center animate-bounce">
+            <CheckCircle2 className="h-10 w-10 text-white" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-3xl font-black tracking-tight uppercase">Payment Successful</h3>
+            <p className="text-emerald-100 font-bold uppercase tracking-widest text-xs">
+              Your private subscription is now active
+            </p>
+          </div>
+        </div>
+        <CardContent className="p-8 space-y-6">
+          <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <ShieldCheck className="h-6 w-6 text-emerald-600" />
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Privacy Status</p>
+                <p className="text-sm font-black text-slate-900">Protected by Cloak</p>
+              </div>
+            </div>
+            <div className="pt-4 border-t border-emerald-100/50 space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Subscription ID</span>
+                <span className="text-xs font-mono font-bold text-slate-900">{successData?.id.slice(0, 18)}...</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Transaction</span>
+                <span className="text-xs font-mono font-bold text-slate-900">{successData?.signature.slice(0, 12)}...</span>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-center text-sm text-slate-500 leading-relaxed px-4">
+            Your payment has been processed privately. No details regarding the amount or recipient are visible on the public ledger.
+          </p>
+
+          <Button 
+            onClick={() => window.location.assign("/dashboard")}
+            className="w-full h-14 rounded-xl bg-slate-900 text-white text-sm font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-200"
+          >
+            Go to Dashboard
+          </Button>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
