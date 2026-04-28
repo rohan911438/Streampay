@@ -89,6 +89,7 @@ class CloakService {
     };
 
     this.connection = new Connection(this.config.rpcUrl, this.config.commitment);
+    console.log(`[CloakService] Initialized with RPC: ${this.connection.rpcEndpoint.split('?')[0]}`);
   }
 
   /**

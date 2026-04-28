@@ -24,6 +24,7 @@ class MagicBlockService {
     this.endpoint = config.magicBlockEndpoint;
     this.connection = new Connection(config.rpcUrl, config.commitment || "confirmed");
     console.log(`[MagicBlock] Initialized with endpoint: ${this.endpoint}`);
+    console.log(`[MagicBlock] Transaction Execution Layer RPC: ${this.connection.rpcEndpoint.split('?')[0]}`);
   }
 
   /**

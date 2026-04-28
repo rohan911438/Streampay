@@ -46,9 +46,13 @@ While Cloak provides the privacy, we use best-in-class tools to power the rest o
 
 ## ⚡ Infrastructure: RPC Fast
 
-To ensure that StreamPay remains "seamless and fast," we utilize **RPC Fast**. This infrastructure layer provides:
-- **Low Latency**: Near-instant transaction broadcasting and confirmation.
-- **Consistency**: High uptime and reliability, ensuring that subscription renewals and one-time payments never fail due to network congestion.
+To ensure that StreamPay remains "seamless and fast," we utilize **RPC Fast** as our primary Solana infrastructure provider. This ensures that every blockchain interaction—from wallet balance checks to complex shielded transaction submissions—benefits from enterprise-grade performance.
+
+- **Low Latency**: Near-instant transaction broadcasting and confirmation, crucial for a smooth user experience during checkout.
+- **High Reliability**: RPC Fast provides consistent uptime and high rate limits, ensuring that automated subscription renewals and one-time payments never fail due to public network congestion.
+- **Scalability**: Designed to handle high-frequency transaction loads, supporting our vision for professional-grade financial operations.
+
+All transactions generated through our **Cloak** and **MagicBlock** execution layers are routed through RPC Fast to guarantee the best possible performance and delivery success rate.
 
 ---
 

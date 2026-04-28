@@ -19,6 +19,10 @@ const endpoint =
   process.env.NEXT_PUBLIC_SOLANA_RPC_ENDPOINT ??
   clusterApiUrl(network);
 
+if (typeof window !== "undefined") {
+  console.log("[StreamPay] Initializing frontend with RPC:", endpoint.split('?')[0]);
+}
+
 const WALLET_STORAGE_KEY = "walletName";
 const CONNECT_TIMEOUT_MS = 12000;
 
