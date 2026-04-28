@@ -8,8 +8,8 @@ import { Providers } from "@/components/providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "PayStream",
-  description: "Solana-native recurring payments for merchants and subscribers.",
+  title: "StreamPay",
+  description: "Privacy-first recurring payments on Solana powered by Cloak.",
 };
 
 export default function RootLayout({

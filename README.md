@@ -1,212 +1,115 @@
-# PayStream
+# StreamPay: Privacy-First Payments on Solana
+### Shielded subscriptions for the real world.
 
-PayStream is a Solana-native recurring payments application built in a monorepo.
+StreamPay is a privacy-first payment platform built on Solana that enables businesses and individuals to execute recurring payments without exposing sensitive financial data. By integrating **Cloak** as our primary transaction layer, we’ve built a solution where payment amounts and recipients remain shielded on-chain, while maintaining optional auditability for compliance.
 
-Current scope includes:
-- Next.js web app with merchant and subscriber sections.
-- Shared Solana blockchain layer for reusable RPC connection and constants.
-- Phantom wallet adapter integration in the frontend.
+---
 
-## Tech Stack
+## The Problem
+Traditional blockchain payments are fully transparent. While this is great for public records, it is a dealbreaker for real-world financial operations.
+- **Payroll**: Disclosing employee salaries to the entire world is a security and privacy risk.
+- **B2B Subscriptions**: Business expenses and vendor relationships should not be public knowledge.
+- **Privacy as a Right**: Users should have the choice to keep their financial activity confidential.
 
-- Next.js 14 (App Router) + TypeScript
-- React 18
-- Tailwind CSS
-- Solana Wallet Adapter (Phantom)
-- @solana/web3.js
+StreamPay solves this by making **Privacy the Default**, ensuring that your financial footprint is protected by state-of-the-art shielded transactions.
 
-## Monorepo Structure
+---
 
-```text
-.
-├── apps/
-│   └── web/                 # Next.js frontend (and integrated API backend capability)
-├── packages/
-│   └── solana/              # Shared Solana RPC + constants layer
-├── .env.example
-├── package.json
-└── paystream_redesigned_plan.md
-```
+## 🚀 Features
 
-## Implemented Routes
+- **🛡️ Private Payments (Cloak)**: Shielded transfers where amount and recipient are hidden from public ledgers.
+- **🔄 Seamless Subscriptions**: Automated recurring payment logic for SaaS, services, and payroll.
+- **📊 Real-time Analytics (Dune)**: Deep insights into revenue and user behavior powered by Dune Analytics.
+- **⚡ Reliable Infrastructure (RPC Fast)**: Low-latency, high-performance access to the Solana network.
+- **🔄 Dodo Fallback**: A reliable public payment path for standard transactions when privacy is not a priority.
 
-- /dashboard
-- /plans
-- /analytics
-- /pay/[slug] (demo example: /pay/demo)
+---
 
-## Environment Variables
+## 🛡️ Core Integration: Cloak Privacy Layer
 
-Create a local env file from .env.example.
+Cloak is the heart of StreamPay. It is responsible for executing **shielded transactions** that break the link between the sender and receiver on the public ledger.
 
-Required values:
+- **How it Works**: When a user pays, the Cloak SDK generates a private transfer. On-chain, the transaction details are obscured, making it impossible for outside observers to determine the transaction's value or destination.
+- **Selective Auditability**: Privacy doesn't mean lack of accountability. StreamPay supports **viewing keys**, allowing users to selectively disclose transaction details to auditors or tax authorities without making them public to everyone.
+- **Centralized Tracking**: Every private transaction is recorded in our database with a unique reference, allowing for reliable internal tracking and subscription management without compromising on-chain privacy.
 
-- SOLANA_RPC_URL
-- NEXT_PUBLIC_SOLANA_RPC_URL
-- DODO_API_KEY
-- DODO_SUBSCRIPTION_PRODUCT_ID
-- DODO_WEBHOOK_SECRET
+---
 
-Use your custom RPC provider URL (Helius, QuickNode, etc.).
-For consistency, set both values to the same endpoint.
+## 📊 Analytics & Fallbacks: Dune + Dodo
 
-Optional Dodo values:
+While Cloak provides the privacy, we use best-in-class tools to power the rest of the ecosystem:
 
-- DODO_API_BASE_URL (defaults to `https://test.dodopayments.com`)
-- DODO_SUCCESS_URL
-- DODO_CANCEL_URL
+- **Dune Analytics**: We leverage Dune to provide real-time dashboards of non-sensitive metrics, such as aggregate revenue trends and active subscription counts, ensuring merchants have the data they need to grow.
+- **Dodo Payments**: We maintain Dodo as a secondary, public fallback option. This allows users who prefer traditional blockchain transparency—or those in jurisdictions requiring standard transfers—to still participate in the StreamPay ecosystem.
 
-Webhook setup:
+---
 
-- Configure Dodo to send events to `https://your-domain/api/webhooks/dodo`.
-- The endpoint accepts `payment.succeeded`, `subscription.active`, and `subscription.renewed` events.
-- Set `DODO_WEBHOOK_SECRET` to the signing secret from Dodo so incoming requests can be verified.
+## ⚡ Infrastructure: RPC Fast
 
-## Dodo Checkout API
+To ensure that StreamPay remains "seamless and fast," we utilize **RPC Fast**. This infrastructure layer provides:
+- **Low Latency**: Near-instant transaction broadcasting and confirmation.
+- **Consistency**: High uptime and reliability, ensuring that subscription renewals and one-time payments never fail due to network congestion.
 
-Backend endpoint:
+---
 
-- `POST /api/dodo/create-checkout`
+## 🛠️ Getting Started
 
-Request body:
+### 1) Prerequisites
+- Node.js 18+ 
+- A Solana wallet (Phantom recommended)
+- A local Postgres database
 
-```json
-{
-	"email": "subscriber@example.com",
-	"name": "Subscriber Name"
-}
-```
-
-Behavior:
-
-- Uses server-side `DODO_API_KEY` to authenticate with Dodo Payments (test mode).
-- Uses predefined `DODO_SUBSCRIPTION_PRODUCT_ID` for checkout session creation.
-- Returns only the `checkout_url` needed by the frontend.
-
-Success response:
-
-```json
-{
-	"checkout_url": "https://..."
-}
-```
-
-## Dodo Webhook API
-
-Backend endpoint:
-
-- `POST /api/webhooks/dodo`
-
-Behavior:
-
-- Verifies the request signature with `DODO_WEBHOOK_SECRET` before parsing the payload.
-- Logs the event type and key identifiers such as subscription ID and customer email.
-- Updates the in-memory subscription snapshot used by the merchant dashboard.
-- Returns a small acknowledgement payload after the event is recorded.
-
-## Database Schema (StreamPay)
-
-Implemented SQL schema file:
-
-- `db/001_streampay_schema.sql`
-
-It includes these tables with foreign keys and indexes:
-
-- `users` (wallet-based identity)
-- `plans` (pricing + Dodo product mapping)
-- `subscriptions` (user-to-plan records)
-- `subscription_events` (payments + webhook/event logging)
-
-Apply it to your Postgres database:
-
+### 2) Installation
 ```bash
-psql "$DATABASE_URL" -f db/001_streampay_schema.sql
+# Install dependencies
+npm install --legacy-peer-deps
+
+# Apply database schema
+psql "$DATABASE_URL" -f db/002_payments_table.sql
 ```
 
-## Database Connection Layer
+### 3) Environment Setup
+Create a `.env` file in the root:
+```env
+# Solana Configuration
+SOLANA_RPC_URL=your_rpc_fast_url
+NEXT_PUBLIC_SOLANA_RPC_URL=your_rpc_fast_url
 
-Reusable database client package:
+# Cloak Configuration
+CLOAK_PRIVATE_PAYMENT_SIGNER_KEY=your_cloak_signer_key
 
-- `packages/db/src/index.ts`
+# Dodo Fallback (Optional)
+DODO_API_KEY=your_dodo_key
+DODO_WEBHOOK_SECRET=your_webhook_secret
 
-It exports a centralized Postgres connection and helpers:
-
-- `db.query(sql, params)`
-- `db.insert(table, values)`
-- `db.update(table, values, whereClause, whereParams)`
-- `db.withTransaction(callback)`
-
-Example usage from a server route/service:
-
-```ts
-import { db } from "@paystream/db";
-
-const users = await db.query("SELECT id, wallet_address FROM users WHERE wallet_address = $1", [walletAddress]);
+# Database
+DATABASE_URL=postgres://user:pass@localhost:5432/streampay
 ```
 
-This layer reads `DATABASE_URL` from environment variables and must only be used server-side.
-
-## How To Run Locally
-
-### 1) Install dependencies
-
-From the repository root:
-
+### 4) Run the Platform
 ```bash
-npm install --legacy-peer-deps --no-audit --no-fund
-```
-
-### 2) Start development server
-
-```bash
+# Start the development server
 npm run dev
+
+# (Optional) Start ngrok for webhook testing
+ngrok http 3000
 ```
 
-App URL:
+---
 
-```text
-http://localhost:3000
-```
+## 🧪 Demo Flow
 
-### 3) Production build
+1. **Connect**: Open the application and connect your Solana wallet.
+2. **Select Plan**: Browse available subscription plans on the demo page (`/pay/demo`).
+3. **Private Checkout**: Notice that **Private Payment (Cloak)** is pre-selected as the recommended method.
+4. **Pay**: Execute the transaction. You will see a "Securing Privacy..." loading state.
+5. **Success**: Receive a confirmation message explaining that your payment was successful and that your details are hidden on-chain.
+6. **Verify**: Check the Merchant Dashboard to see your new private subscription active and tagged with a 🔒 badge.
 
-```bash
-npm run build
-```
+---
 
-### 4) Start production server
+## 🌟 Why This Matters
 
-```bash
-npm run start
-```
+Privacy is not just a feature; it is a **fundamental requirement** for the mass adoption of blockchain in global finance. StreamPay enables businesses to pay their employees, settle vendor invoices, and manage subscriptions with the same level of confidentiality they expect from traditional banking, but with the speed, efficiency, and transparency of the Solana network.
 
-## Windows PowerShell Note
-
-If your system blocks npm.ps1 execution, use `npm.cmd` directly in PowerShell:
-
-```powershell
-npm.cmd run dev
-```
-
-You can also run via `cmd` explicitly:
-
-```powershell
-cmd /c "cd /d c:\Users\dell\Desktop\Solana Hackathon && npm run dev"
-```
-
-Same pattern works for build/start:
-
-```powershell
-cmd /c "cd /d c:\Users\dell\Desktop\Solana Hackathon && npm run build"
-cmd /c "cd /d c:\Users\dell\Desktop\Solana Hackathon && npm run start"
-```
-
-## Shared Solana Layer
-
-The shared blockchain module lives in packages/solana and provides:
-
-- Centralized Connection instance with confirmed commitment.
-- Environment-driven RPC URL.
-- Reusable constants for USDC devnet mint and SPL-related program IDs.
-
-This ensures all services use the same Solana network configuration.
+**We are moving blockchain payments from public novelty to professional financial standard.**
