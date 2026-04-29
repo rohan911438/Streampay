@@ -275,6 +275,8 @@ async function ensureWebhookSchema(): Promise<void> {
           customer_email TEXT,
           wallet_address TEXT,
           paid_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          status TEXT NOT NULL DEFAULT 'success',
+          type TEXT NOT NULL DEFAULT 'public',
           payload JSONB,
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
           CONSTRAINT payments_user_fk FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -504,8 +506,10 @@ async function handlePaymentSucceeded(
       customer_email,
       wallet_address,
       paid_at,
+      status,
+      type,
       payload
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::timestamptz, $13::jsonb)
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::timestamptz, 'success', 'public', $13::jsonb)
     ON CONFLICT (provider_payment_id) DO NOTHING
     RETURNING id`,
     [

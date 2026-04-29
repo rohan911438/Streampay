@@ -34,6 +34,7 @@ export const POST = withPlatformAuth(async (req, { merchant }) => {
       provider: "cloak",
       execution_layer: "magicblock",
       status: "pending",
+      type: "private",
     });
 
     if (!payment) {
