@@ -1,8 +1,9 @@
 import {
-  getDashboardMetrics,
-  getDashboardRecentEvents,
-  getDashboardSubscriptionSnapshots,
-} from "@/lib/subscriptions-db";
+  getMerchantDashboardMetrics,
+  getMerchantRecentEvents,
+  getMerchantSubscriptionSnapshots,
+} from "@/lib/merchant-dashboard-data";
+import { MerchantService } from "@/lib/merchant-service";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,8 @@ import {
   MousePointer2,
   BarChart3,
   ShieldCheck,
-  Globe
+  Globe,
+  Filter
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -54,11 +56,22 @@ const MetricCard = ({ label, value, icon: Icon, trend }: { label: string, value:
   </Card>
 );
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: { type?: string };
+}) {
+  // In a real app, this would come from a session/auth cookie
+  // For the demo, we use the Demo Merchant
+  const merchant = await MerchantService.getDemoMerchant();
+  const merchantId = merchant?.id || "00000000-0000-0000-0000-000000000000";
+  
+  const typeFilter = searchParams.type;
+
   const [metrics, recentEvents, subscriptionSnapshots] = await Promise.all([
-    getDashboardMetrics(),
-    getDashboardRecentEvents(6),
-    getDashboardSubscriptionSnapshots(6),
+    getMerchantDashboardMetrics(merchantId),
+    getMerchantRecentEvents(merchantId, 10, typeFilter),
+    getMerchantSubscriptionSnapshots(merchantId, 6),
   ]);
 
   return (
@@ -73,7 +86,7 @@ export default async function DashboardPage() {
           Control Center
         </h2>
         <p className="max-w-xl text-sm font-medium text-slate-500 leading-relaxed">
-          Monitor your subscription health, manage revenue streams, and track real-time blockchain webhook events.
+          Monitor your subscription health, manage revenue streams, and track real-time blockchain webhook events for {merchant?.name || "your merchant"}.
         </p>
         <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] pt-1">
           <ShieldCheck className="h-3 w-3 text-emerald-500" />
@@ -92,14 +105,42 @@ export default async function DashboardPage() {
         {/* Main Content Column */}
         <div className="space-y-8">
           <Card className="border-slate-200/60 shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between border-b border-slate-50 pb-6">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-50 pb-6 gap-4">
               <div className="space-y-1">
                 <CardTitle className="text-xl font-bold">Recent Activity</CardTitle>
-                <CardDescription>Latest events streamed from Dodo Payments.</CardDescription>
+                <CardDescription>Latest events scoped to your merchant account.</CardDescription>
               </div>
-              <Button variant="secondary" className="h-8 rounded-lg px-3 text-[10px] font-bold uppercase tracking-widest">
-                View All
-              </Button>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center bg-slate-100 p-1 rounded-xl">
+                  <Link 
+                    href="/dashboard" 
+                    className={cn(
+                      "px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all",
+                      !typeFilter ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"
+                    )}
+                  >
+                    All
+                  </Link>
+                  <Link 
+                    href="/dashboard?type=public" 
+                    className={cn(
+                      "px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all",
+                      typeFilter === 'public' ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"
+                    )}
+                  >
+                    Public
+                  </Link>
+                  <Link 
+                    href="/dashboard?type=private" 
+                    className={cn(
+                      "px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all",
+                      typeFilter === 'private' ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"
+                    )}
+                  >
+                    Private
+                  </Link>
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="pt-6">
               {recentEvents.length > 0 ? (
@@ -115,12 +156,12 @@ export default async function DashboardPage() {
                           <div className="flex items-center gap-2">
                             <div className={cn(
                               "flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest",
-                              event.provider === "cloak" 
-                                ? "bg-slate-900 text-emerald-400 border border-slate-800" 
-                                : "bg-blue-50 text-blue-600 border border-blue-100"
+                              event.type === "private" 
+                                 ? "bg-slate-900 text-emerald-400 border border-slate-800" 
+                                 : "bg-blue-50 text-blue-600 border border-blue-100"
                             )}>
-                              {event.provider === "cloak" ? <ShieldCheck className="h-2.5 w-2.5" /> : <Globe className="h-2.5 w-2.5" />}
-                              {event.provider === "cloak" ? "Private" : "Public"}
+                              {event.type === "private" ? <ShieldCheck className="h-2.5 w-2.5" /> : <Globe className="h-2.5 w-2.5" />}
+                              {event.type === "private" ? "Private" : "Public"}
                             </div>
                             {event.executionLayer === "magicblock" && (
                               <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[8px] font-black uppercase tracking-widest border border-emerald-400">

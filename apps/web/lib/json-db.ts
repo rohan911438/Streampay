@@ -5,11 +5,38 @@ import { randomUUID } from "crypto";
 const DB_DIR = join(process.cwd(), ".data");
 
 interface DataStore {
+  merchants: Merchant[];
   plans: Plan[];
   users: User[];
   subscriptions: Subscription[];
+  payments: Payment[];
   checkoutSessions: CheckoutSession[];
   subscriptionEvents: SubscriptionEvent[];
+}
+
+export interface Merchant {
+  id: string;
+  name: string;
+  api_key: string;
+  wallet_address?: string;
+  webhook_url?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Payment {
+  id: string;
+  merchantId: string;
+  userId: string | null;
+  subscriptionId: string | null;
+  amountUsdc: number;
+  status: "pending" | "success" | "failed" | "completed";
+  provider: string;
+  executionLayer?: string;
+  type: "public" | "private";
+  walletAddress: string | null;
+  transactionReference: string | null;
+  paidAt: string;
 }
 
 export interface Plan {
@@ -77,17 +104,22 @@ async function ensureDir() {
 
 async function readDb(): Promise<DataStore> {
   await ensureDir();
+  const defaultState: DataStore = {
+    merchants: [],
+    plans: [],
+    users: [],
+    subscriptions: [],
+    payments: [],
+    checkoutSessions: [],
+    subscriptionEvents: [],
+  };
+
   try {
     const data = await readFile(join(DB_DIR, "db.json"), "utf-8");
-    return JSON.parse(data);
+    const parsed = JSON.parse(data);
+    return { ...defaultState, ...parsed };
   } catch {
-    return {
-      plans: [],
-      users: [],
-      subscriptions: [],
-      checkoutSessions: [],
-      subscriptionEvents: [],
-    };
+    return defaultState;
   }
 }
 
@@ -99,6 +131,86 @@ async function writeDb(data: DataStore) {
 export const jsonDb = {
   async getState(): Promise<DataStore> {
     return readDb();
+  },
+
+  async listMerchants(): Promise<Merchant[]> {
+    const db = await readDb();
+    return db.merchants;
+  },
+
+  async listPayments(): Promise<Payment[]> {
+    const db = await readDb();
+    return db.payments;
+  },
+
+  async findMerchantByApiKey(apiKey: string): Promise<Merchant | null> {
+    const db = await readDb();
+    // Support the demo key if it doesn't exist in local DB
+    if (apiKey === "sp_live_demo_6b4a2d8e1c") {
+      let demo = db.merchants.find(m => m.api_key === apiKey);
+      if (!demo) {
+        demo = {
+          id: "00000000-0000-0000-0000-000000000000",
+          name: "Demo Merchant (Local)",
+          api_key: "sp_live_demo_6b4a2d8e1c",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+      }
+      return demo;
+    }
+    return db.merchants.find(m => m.api_key === apiKey) || null;
+  },
+
+  async findMerchantById(id: string): Promise<Merchant | null> {
+    const db = await readDb();
+    if (id === "00000000-0000-0000-0000-000000000000") {
+      return {
+        id,
+        name: "Demo Merchant (Local)",
+        api_key: "sp_live_demo_6b4a2d8e1c",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+    }
+    return db.merchants.find(m => m.id === id) || null;
+  },
+
+  async updateMerchant(id: string, updates: Partial<Merchant>): Promise<Merchant | null> {
+    const db = await readDb();
+    const index = db.merchants.findIndex(m => m.id === id);
+    if (index === -1) {
+      // If it's the demo merchant and not in DB, we "seed" it on the fly
+      if (id === "00000000-0000-0000-0000-000000000000") {
+        const demo: Merchant = {
+          id,
+          name: "Demo Merchant (Local)",
+          api_key: "sp_live_demo_6b4a2d8e1c",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          ...updates
+        };
+        db.merchants.push(demo);
+        await writeDb(db);
+        return demo;
+      }
+      return null;
+    }
+    db.merchants[index] = { ...db.merchants[index], ...updates, updated_at: new Date().toISOString() };
+    await writeDb(db);
+    return db.merchants[index];
+  },
+
+  async createPayment(input: Omit<Payment, "id" | "paidAt">): Promise<Payment> {
+    const db = await readDb();
+    const payment: Payment = {
+      ...input,
+      id: randomUUID(),
+      paidAt: new Date().toISOString()
+    };
+    db.payments.push(payment);
+    await writeDb(db);
+    return payment;
   },
 
   async listPlans(): Promise<Plan[]> {

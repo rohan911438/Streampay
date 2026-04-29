@@ -1,4 +1,6 @@
 import { db } from "@paystream/db";
+import { jsonDb } from "./json-db";
+import { dbConfig } from "./db-config";
 
 export interface Merchant {
   id: string;
@@ -12,19 +14,55 @@ export interface Merchant {
 
 export const MerchantService = {
   async getByApiKey(apiKey: string): Promise<Merchant | null> {
-    const result = await db.query<Merchant>(
-      "SELECT * FROM merchants WHERE api_key = $1",
-      [apiKey]
-    );
-    return result.rows[0] ?? null;
+    if (dbConfig.shouldTryPostgres()) {
+      try {
+        const result = await db.query<Merchant>(
+          "SELECT * FROM merchants WHERE api_key = $1",
+          [apiKey]
+        );
+        return result.rows[0] ?? null;
+      } catch (err: any) {
+        if (err.code === 'ECONNREFUSED' || err.message?.includes('ECONNREFUSED')) {
+          dbConfig.markPostgresAsUnavailable();
+        } else {
+          console.error("[MerchantService] DB error in getByApiKey:", err);
+        }
+      }
+    }
+    
+    const merchant = await jsonDb.findMerchantByApiKey(apiKey);
+    if (!merchant) return null;
+    return {
+      ...merchant,
+      created_at: new Date(merchant.created_at),
+      updated_at: new Date(merchant.updated_at)
+    } as Merchant;
   },
 
   async getById(id: string): Promise<Merchant | null> {
-    const result = await db.query<Merchant>(
-      "SELECT * FROM merchants WHERE id = $1",
-      [id]
-    );
-    return result.rows[0] ?? null;
+    if (dbConfig.shouldTryPostgres()) {
+      try {
+        const result = await db.query<Merchant>(
+          "SELECT * FROM merchants WHERE id = $1",
+          [id]
+        );
+        return result.rows[0] ?? null;
+      } catch (err: any) {
+        if (err.code === 'ECONNREFUSED' || err.message?.includes('ECONNREFUSED')) {
+          dbConfig.markPostgresAsUnavailable();
+        } else {
+          console.error("[MerchantService] DB error in getById:", err);
+        }
+      }
+    }
+
+    const merchant = await jsonDb.findMerchantById(id);
+    if (!merchant) return null;
+    return {
+      ...merchant,
+      created_at: new Date(merchant.created_at),
+      updated_at: new Date(merchant.updated_at)
+    } as Merchant;
   },
 
   async getDemoMerchant(): Promise<Merchant | null> {

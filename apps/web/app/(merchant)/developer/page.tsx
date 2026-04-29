@@ -16,13 +16,54 @@ import { cn } from "@/lib/utils";
 
 export default function DeveloperPage() {
   const [apiKey, setApiKey] = useState("sp_live_demo_6b4a2d8e1c");
+  const [webhookUrl, setWebhookUrl] = useState("");
   const [copied, setCopied] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(apiKey);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const handleSaveWebhook = async () => {
+    setSaving(true);
+    setStatus("idle");
+    try {
+      const response = await fetch("/api/v1/merchants/me", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+        },
+        body: JSON.stringify({ webhook_url: webhookUrl }),
+      });
+
+      if (response.ok) {
+        setStatus("success");
+      } else {
+        setStatus("error");
+      }
+    } catch (err) {
+      setStatus("error");
+    } finally {
+      setSaving(false);
+      setTimeout(() => setStatus("idle"), 3000);
+    }
+  };
+
+  // Fetch current merchant info
+  useState(() => {
+    fetch("/api/v1/merchants/me", {
+      headers: { "x-api-key": apiKey }
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.webhook_url) setWebhookUrl(data.webhook_url);
+    })
+    .catch(console.error);
+  });
 
   return (
     <div className="space-y-12">
@@ -37,7 +78,7 @@ export default function DeveloperPage() {
             Developer <span className="text-slate-300">Portal</span>
           </h1>
           <p className="text-slate-500 text-lg max-w-2xl font-medium leading-relaxed">
-            Integrate private payments into your own applications using our powerful APIs.
+            Integrate private payments into your own applications using our powerful APIs and real-time webhooks.
           </p>
         </div>
       </div>
@@ -88,6 +129,70 @@ export default function DeveloperPage() {
                  <button className="px-8 py-4 bg-slate-900 text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] hover:shadow-2xl hover:shadow-slate-900/20 transition-all active:scale-95">
                     Roll API Key
                  </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Webhook Configuration Card */}
+          <div className="bg-white rounded-[2.5rem] border border-slate-100 p-8 md:p-12 shadow-2xl shadow-slate-200/50 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+              <Zap className="h-32 w-32" />
+            </div>
+            
+            <div className="relative z-10 space-y-8">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-2xl bg-emerald-500 flex items-center justify-center">
+                  <Zap className="text-white h-6 w-6" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Webhooks</h2>
+                  <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Real-time event delivery</p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">
+                    Webhook URL
+                  </label>
+                  <div className="flex flex-col gap-3">
+                    <input 
+                      type="url"
+                      placeholder="https://your-api.com/webhooks"
+                      value={webhookUrl}
+                      onChange={(e) => setWebhookUrl(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 font-mono text-sm text-slate-600 focus:outline-none focus:border-primary transition-all"
+                    />
+                    <div className="flex items-center justify-between">
+                      <button 
+                        onClick={handleSaveWebhook}
+                        disabled={saving}
+                        className={cn(
+                          "px-8 py-4 rounded-2xl text-xs font-black uppercase tracking-[0.2em] transition-all active:scale-95",
+                          saving ? "bg-slate-100 text-slate-400" : "bg-emerald-500 text-white hover:bg-emerald-600"
+                        )}
+                      >
+                        {saving ? "Saving..." : "Save Webhook"}
+                      </button>
+                      
+                      {status === "success" && (
+                        <div className="flex items-center gap-2 text-[10px] font-black uppercase text-emerald-600 animate-in fade-in slide-in-from-right-4">
+                          <Check className="h-4 w-4" />
+                          Configuration Saved
+                        </div>
+                      )}
+                      {status === "error" && (
+                        <div className="flex items-center gap-2 text-[10px] font-black uppercase text-rose-600 animate-in fade-in slide-in-from-right-4">
+                          <Shield className="h-4 w-4" />
+                          Update Failed
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-[10px] font-medium text-slate-400 leading-relaxed max-w-lg">
+                    StreamPay will send POST requests to this URL when important events occur, such as payment completions.
+                  </p>
+                </div>
               </div>
             </div>
           </div>

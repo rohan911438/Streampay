@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { db } from "@paystream/db";
 import { recordDodoWebhookEvent } from "@/lib/dodo-webhook-state";
 import { isLikelySolanaWalletAddress, recordSubscriptionEvent } from "@/lib/subscriptions-db";
+import { WebhookService } from "@/lib/webhook-service";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -555,6 +556,15 @@ async function handlePaymentSucceeded(
       provider: "dodo",
       providerEventId: eventDedupeKey,
       payload,
+    });
+
+    // Notify merchant via webhook
+    await WebhookService.notifyPaymentCompleted("00000000-0000-0000-0000-000000000000", {
+      id: paymentInsert.rows[0].id,
+      status: "success",
+      transaction_reference: ids.paymentId || ids.eventId,
+      amount_usdc: amountUsdc ?? 0,
+      currency: ids.currency || "USDC"
     });
 }
 

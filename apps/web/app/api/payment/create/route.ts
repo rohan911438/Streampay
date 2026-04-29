@@ -3,6 +3,7 @@ import { withPlatformAuth, platformError } from "@/lib/platform-auth";
 import { db } from "@paystream/db";
 import { getMagicBlockService } from "@/lib/magicblock-service";
 import { isLikelySolanaWalletAddress, recordSubscriptionEvent } from "@/lib/subscriptions-db";
+import { WebhookService } from "@/lib/webhook-service";
 import bs58 from "bs58";
 
 export const runtime = "nodejs";
@@ -85,6 +86,15 @@ export const POST = withPlatformAuth(async (req, { merchant }) => {
             executionLayer: "magicblock",
             providerEventId: txResult,
             payload: { merchant_id: merchant.id, magicBlockRef }
+        });
+
+        // Notify merchant via webhook
+        await WebhookService.notifyPaymentCompleted(merchant.id, {
+            id: payment.id,
+            status: "completed",
+            transaction_reference: txResult,
+            amount_usdc: amount,
+            currency: "USDC"
         });
 
       } catch (err) {
