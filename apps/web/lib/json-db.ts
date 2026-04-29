@@ -9,7 +9,7 @@ interface DataStore {
   plans: Plan[];
   users: User[];
   subscriptions: Subscription[];
-  payments: Payment[];
+  payments: JsonPayment[];
   checkoutSessions: CheckoutSession[];
   subscriptionEvents: SubscriptionEvent[];
 }
@@ -24,7 +24,7 @@ export interface Merchant {
   updated_at: string;
 }
 
-export interface Payment {
+export interface JsonPayment {
   id: string;
   merchantId: string;
   userId: string | null;
@@ -36,6 +36,7 @@ export interface Payment {
   type: "public" | "private";
   walletAddress: string | null;
   transactionReference: string | null;
+  planId: string | null;
   paidAt: string;
 }
 
@@ -138,7 +139,7 @@ export const jsonDb = {
     return db.merchants;
   },
 
-  async listPayments(): Promise<Payment[]> {
+  async listPayments(): Promise<JsonPayment[]> {
     const db = await readDb();
     return db.payments;
   },
@@ -201,14 +202,23 @@ export const jsonDb = {
     return db.merchants[index];
   },
 
-  async createPayment(input: Omit<Payment, "id" | "paidAt">): Promise<Payment> {
+  async createPayment(input: Omit<JsonPayment, "id" | "paidAt">): Promise<JsonPayment> {
     const db = await readDb();
-    const payment: Payment = {
+    const payment: JsonPayment = {
       ...input,
       id: randomUUID(),
       paidAt: new Date().toISOString()
     };
     db.payments.push(payment);
+    await writeDb(db);
+    return payment;
+  },
+
+  async updatePaymentStatus(id: string, status: JsonPayment["status"]): Promise<JsonPayment | null> {
+    const db = await readDb();
+    const payment = db.payments.find(p => p.id === id);
+    if (!payment) return null;
+    payment.status = status;
     await writeDb(db);
     return payment;
   },
