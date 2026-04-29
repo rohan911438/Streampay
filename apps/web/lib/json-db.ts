@@ -20,12 +20,14 @@ export interface Plan {
   description: string | null;
   dodoProductId: string | null;
   active: boolean;
+  merchantId: string;
   createdAt: string;
 }
 
 export interface User {
   id: string;
   walletAddress: string;
+  merchantId: string;
   createdAt: string;
 }
 
@@ -33,6 +35,7 @@ export interface Subscription {
   id: string;
   userId: string;
   planId: string;
+  merchantId: string;
   status: "active" | "pending" | "canceled";
   currentPeriodStart: string | null;
   currentPeriodEnd: string | null;
@@ -45,6 +48,7 @@ export interface CheckoutSession {
   id: string;
   userId: string;
   planId: string;
+  merchantId: string;
   subscriptionId: string | null;
   checkoutSessionId: string;
   status: "pending" | "completed" | "failed" | "expired";
@@ -56,6 +60,7 @@ export interface CheckoutSession {
 export interface SubscriptionEvent {
   id: string;
   subscriptionId: string;
+  merchantId: string;
   eventType: string;
   provider?: "dodo" | "cloak" | string | null;
   executionLayer?: "magicblock" | string | null;
@@ -137,6 +142,7 @@ export const jsonDb = {
       description: input.description || null,
       dodoProductId: input.dodoProductId || null,
       active: true,
+      merchantId: "00000000-0000-0000-0000-000000000000",
       createdAt: new Date().toISOString(),
     };
     db.plans.push(plan);
@@ -151,6 +157,7 @@ export const jsonDb = {
       user = {
         id: randomUUID(),
         walletAddress,
+        merchantId: "00000000-0000-0000-0000-000000000000",
         createdAt: new Date().toISOString(),
       };
       db.users.push(user);
@@ -191,6 +198,7 @@ export const jsonDb = {
       id: randomUUID(),
       userId: input.userId,
       planId: input.planId,
+      merchantId: "00000000-0000-0000-0000-000000000000",
       status: input.status,
       currentPeriodStart: input.status === "active" ? new Date().toISOString() : null,
       currentPeriodEnd: null,
@@ -231,6 +239,7 @@ export const jsonDb = {
     const event: SubscriptionEvent = {
       id: randomUUID(),
       subscriptionId: input.subscriptionId,
+      merchantId: "00000000-0000-0000-0000-000000000000",
       eventType: input.eventType,
       provider: input.provider || null,
       executionLayer: input.executionLayer || null,
@@ -255,6 +264,7 @@ export const jsonDb = {
       userId: input.userId,
       planId: input.planId,
       subscriptionId: input.subscriptionId,
+      merchantId: "00000000-0000-0000-0000-000000000000",
       checkoutSessionId: input.checkoutSessionId ?? randomUUID(),
       status: "pending",
       createdAt: new Date().toISOString(),

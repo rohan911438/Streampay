@@ -10,7 +10,8 @@ import {
   BarChart3, 
   Rocket,
   Layers,
-  ChevronRight
+  ChevronRight,
+  Terminal
 } from "lucide-react";
 import { WalletStatus } from "@/components/wallet-status";
 
@@ -18,6 +19,7 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/plans", label: "Plans", icon: CreditCard },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/developer", label: "Developer", icon: Terminal },
   { href: "/pay/demo", label: "Demo Pay", icon: Rocket },
 ];
 

@@ -265,6 +265,7 @@ async function ensureWebhookSchema(): Promise<void> {
           user_id UUID NOT NULL,
           plan_id UUID,
           subscription_id UUID,
+          merchant_id UUID REFERENCES merchants(id),
           provider_payment_id TEXT NOT NULL UNIQUE,
           provider_event_id TEXT,
           provider TEXT NOT NULL DEFAULT 'dodo',
@@ -418,11 +419,12 @@ async function insertSubscriptionEvent(
   if (!input.providerEventId) {
     await client.query(
       `INSERT INTO subscription_events (
-        user_id, subscription_id, amount_usdc, event_type, provider_event_id, payload, occurred_at
-      ) VALUES ($1, $2, $3, $4, NULL, $5::jsonb, NOW())`,
+        user_id, subscription_id, merchant_id, amount_usdc, event_type, provider_event_id, payload, occurred_at
+      ) VALUES ($1, $2, $3, $4, $5, NULL, $6::jsonb, NOW())`,
       [
         input.userId,
         input.subscriptionId,
+        "00000000-0000-0000-0000-000000000000",
         input.amountUsdc,
         input.eventType,
         JSON.stringify(input.payload),
@@ -433,13 +435,14 @@ async function insertSubscriptionEvent(
 
   const inserted = await client.query<{ id: string }>(
     `INSERT INTO subscription_events (
-      user_id, subscription_id, amount_usdc, event_type, provider_event_id, payload, occurred_at
-    ) VALUES ($1, $2, $3, $4, $5, $6::jsonb, NOW())
+      user_id, subscription_id, merchant_id, amount_usdc, event_type, provider_event_id, payload, occurred_at
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, NOW())
     ON CONFLICT (provider_event_id) DO NOTHING
     RETURNING id`,
     [
       input.userId,
       input.subscriptionId,
+      "00000000-0000-0000-0000-000000000000",
       input.amountUsdc,
       input.eventType,
       input.providerEventId,
@@ -492,6 +495,7 @@ async function handlePaymentSucceeded(
       user_id,
       plan_id,
       subscription_id,
+      merchant_id,
       provider_payment_id,
       provider_event_id,
       provider,
@@ -501,13 +505,14 @@ async function handlePaymentSucceeded(
       wallet_address,
       paid_at,
       payload
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::timestamptz, $12::jsonb)
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::timestamptz, $13::jsonb)
     ON CONFLICT (provider_payment_id) DO NOTHING
     RETURNING id`,
     [
       context.userId,
       context.planId,
       context.subscriptionId,
+      "00000000-0000-0000-0000-000000000000", // Link to Demo Merchant
       dedupePaymentId,
       eventDedupeKey,
       "dodo",

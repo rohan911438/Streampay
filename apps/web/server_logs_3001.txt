@@ -255,3 +255,11 @@ Private transfer failed: TokenOwnerOffCurveError
     at async requestHandlerImpl (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\router-server.js:383:13)
     at async Server.requestListener (C:\Users\dell\Desktop\Solana Hackathon\node_modules\next\dist\server\lib\start-server.js:141:13)
  GET /api/test/full-flow 500 in 811ms
+ ✓ Compiled in 1478ms (448 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\dell\Desktop\Solana Hackathon\apps\web\.next-dev\cache\webpack\client-development\16.pack.gz_' -> 'C:\Users\dell\Desktop\Solana Hackathon\apps\web\.next-dev\cache\webpack\client-development\16.pack.gz'
+ ✓ Compiled in 948ms (448 modules)
+ ✓ Compiled in 1096ms (448 modules)
+ ✓ Compiled in 785ms (448 modules)
+ ✓ Compiled in 619ms (448 modules)
+ ✓ Compiled in 502ms (448 modules)
+ ✓ Compiled in 433ms (448 modules)
