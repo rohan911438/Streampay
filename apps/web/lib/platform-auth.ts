@@ -22,3 +22,20 @@ export async function validatePlatformRequest(req: NextRequest) {
 export function platformError(message: string, status: number = 400) {
   return NextResponse.json({ error: message }, { status });
 }
+
+export type PlatformHandler = (
+  req: NextRequest,
+  context: { merchant: any }
+) => Promise<NextResponse>;
+
+export function withPlatformAuth(handler: PlatformHandler) {
+  return async (req: NextRequest) => {
+    const { merchant, error, status } = await validatePlatformRequest(req);
+
+    if (error || !merchant) {
+      return platformError(error || "Unauthorized", status);
+    }
+
+    return handler(req, { merchant });
+  };
+}
