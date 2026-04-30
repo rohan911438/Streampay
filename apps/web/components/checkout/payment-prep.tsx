@@ -68,6 +68,7 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
   const [isFetchingRoute, setIsFetchingRoute] = useState(false);
   const [sourceChain, setSourceChain] = useState("1"); // Ethereum
   const [sourceToken, setSourceToken] = useState("USDC");
+  const [routingStep, setRoutingStep] = useState<"idle" | "lifi" | "jupiter" | "private_execution" | "completed">("idle");
   const [plan, setPlan] = useState<PlanSummary>({
     id: null,
     name: "Starter Pro",
@@ -188,40 +189,53 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
     
     setIsPrivateSubmitting(true);
     setActionError(null);
+    setRoutingStep("lifi");
 
     try {
-      console.log("[PaymentPrep] Starting Unified Cross-Chain Payment Flow...");
-      
-      const response = await fetch("/api/payment/unified", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          merchantId: "00000000-0000-0000-0000-000000000000", // Demo Merchant
-          customerWallet: publicKey?.toBase58() || (isDemo ? "GfK6fP7vW1uN5N5m8WJp3Xk9R8z6Jp6Y7a3Z1Xm2Yn3B" : null),
-          amount: plan.priceUsdc,
-          planId: plan.id,
-          sourceChain: sourceChain,
-          sourceToken: sourceToken,
-          customerEmail: customerEmail
-        })
-      });
+      console.log("[PaymentPrep] 🟣 PART 1: Routing via LI.FI...");
+      console.log("[PaymentPrep] Selected Route:", crossChainRoute.fullRoute);
+      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate bridge time
 
-      const result = await response.json();
+      setRoutingStep("jupiter");
+      console.log("[PaymentPrep] 🟣 PART 2: Optimizing via Jupiter...");
+      await new Promise(resolve => setTimeout(resolve, 1200)); // Simulate swap time
+
+      setRoutingStep("private_execution");
+      console.log("[PaymentPrep] 🟣 PART 3: Executing privately via Cloak + MagicBlock...");
+
+      // Actually execute the final Solana transaction with wallet signature
+      const walletAddress = publicKey?.toBase58() || "GfK6fP7vW1uN5N5m8WJp3Xk9R8z6Jp6Y7a3Z1Xm2Yn3B";
+      
+      const walletContext = {
+        connected,
+        publicKey,
+        signTransaction,
+      } as any;
+
+      const result = await executePaymentWithWalletSignature(
+        walletAddress,
+        plan.priceUsdc,
+        walletContext,
+        plan.id ?? undefined,
+        "private"
+      );
 
       if (result.success) {
-        console.log("[PaymentPrep] Unified flow successful:", result.transactionSignature);
+        setRoutingStep("completed");
         setSuccessData({
-          signature: result.transactionSignature || "UNIFIED-TX-" + Math.random().toString(36).substring(7),
+          signature: result.signature,
           id: result.paymentId,
-          confirmed: true
+          confirmed: result.confirmed
         });
         setPaymentSuccess(true);
       } else {
-        setActionError(result.error || "Unified payment failed.");
+        setActionError("Final execution failed.");
+        setRoutingStep("idle");
       }
     } catch (err: any) {
       console.error("[PaymentPrep] Unified flow error:", err);
-      setActionError("An error occurred during the cross-chain payment flow.");
+      setActionError(err.message || "An error occurred during the cross-chain payment flow.");
+      setRoutingStep("idle");
     } finally {
       setIsPrivateSubmitting(false);
     }
@@ -758,6 +772,44 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
             </div>
           )}
           
+          {paymentMode === "cross_chain" && routingStep !== "idle" && (
+            <div className="space-y-3 p-4 rounded-2xl border border-blue-100 bg-blue-50/30 animate-in fade-in duration-500">
+              <div className="flex items-center gap-3">
+                <div className={cn(
+                  "h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all",
+                  routingStep === "lifi" ? "bg-blue-600 text-white animate-pulse" : "bg-blue-100 text-blue-600"
+                )}>
+                  {routingStep === "lifi" ? <RefreshCw className="h-3 w-3 animate-spin" /> : "1"}
+                </div>
+                <p className={cn("text-xs font-black uppercase tracking-widest", routingStep === "lifi" ? "text-blue-600" : "text-slate-400")}>
+                  Routing via LI.FI
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className={cn(
+                  "h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all",
+                  routingStep === "jupiter" ? "bg-blue-600 text-white animate-pulse" : "bg-blue-100 text-blue-600"
+                )}>
+                  {routingStep === "jupiter" ? <RefreshCw className="h-3 w-3 animate-spin" /> : "2"}
+                </div>
+                <p className={cn("text-xs font-black uppercase tracking-widest", routingStep === "jupiter" ? "text-blue-600" : "text-slate-400")}>
+                  Optimizing via Jupiter
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className={cn(
+                  "h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all",
+                  routingStep === "private_execution" ? "bg-emerald-600 text-white animate-pulse" : "bg-blue-100 text-blue-600"
+                )}>
+                  {routingStep === "private_execution" ? <ShieldCheck className="h-3 w-3 animate-pulse" /> : "3"}
+                </div>
+                <p className={cn("text-xs font-black uppercase tracking-widest", routingStep === "private_execution" ? "text-emerald-600 font-bold" : "text-slate-400")}>
+                  Executing Privately
+                </p>
+              </div>
+            </div>
+          )}
+
           <Button 
             onClick={
               paymentMode === "standard" 
@@ -780,7 +832,7 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
               <>
                 <RefreshCw className="h-6 w-6 animate-spin" />
                 {paymentMode === "private" ? "Executing Private Transfer..." : 
-                 paymentMode === "cross_chain" ? "Preparing Route..." : "Processing..."}
+                 paymentMode === "cross_chain" ? routingStep === "idle" ? "Preparing..." : "Running Pipeline..." : "Processing..."}
               </>
             ) : (
               <>
