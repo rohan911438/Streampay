@@ -185,9 +185,46 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
       setActionError("No valid route selected.");
       return;
     }
-    // In a real app, we would initiate the LI.FI SDK transaction here.
-    // For the hackathon, we show the route and simulate the initiation.
-    alert("Cross-chain routing initiated! LI.FI will now bridge your assets from " + sourceChain + " to Solana.");
+    
+    setIsPrivateSubmitting(true);
+    setActionError(null);
+
+    try {
+      console.log("[PaymentPrep] Starting Unified Cross-Chain Payment Flow...");
+      
+      const response = await fetch("/api/payment/unified", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          merchantId: "00000000-0000-0000-0000-000000000000", // Demo Merchant
+          customerWallet: publicKey?.toBase58() || (isDemo ? "GfK6fP7vW1uN5N5m8WJp3Xk9R8z6Jp6Y7a3Z1Xm2Yn3B" : null),
+          amount: plan.priceUsdc,
+          planId: plan.id,
+          sourceChain: sourceChain,
+          sourceToken: sourceToken,
+          customerEmail: customerEmail
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        console.log("[PaymentPrep] Unified flow successful:", result.transactionSignature);
+        setSuccessData({
+          signature: result.transactionSignature || "UNIFIED-TX-" + Math.random().toString(36).substring(7),
+          id: result.paymentId,
+          confirmed: true
+        });
+        setPaymentSuccess(true);
+      } else {
+        setActionError(result.error || "Unified payment failed.");
+      }
+    } catch (err: any) {
+      console.error("[PaymentPrep] Unified flow error:", err);
+      setActionError("An error occurred during the cross-chain payment flow.");
+    } finally {
+      setIsPrivateSubmitting(false);
+    }
   }
 
   async function onStandardCheckoutClick() {

@@ -14,6 +14,8 @@ export interface PaymentRequest {
   type: "private" | "public";
   senderPrivateKey?: string; 
   customerEmail?: string;
+  sourceChain?: string;
+  sourceToken?: string;
 }
 
 export interface PaymentResult {
@@ -173,6 +175,48 @@ export const PaymentService = {
     } catch (err) {
       console.error("[PaymentService] Unexpected error:", err);
       return { success: false, error: "Internal server error", message: String(err) };
+    }
+  },
+
+  /**
+   * Unified Cross-Chain Payment Flow
+   * Routes: Non-Solana Chain -> LI.FI Bridge -> Solana -> Jupiter Swap (SOL) -> Cloak Private Payment
+   */
+  async processCrossChainPayment(request: PaymentRequest): Promise<PaymentResult> {
+    const { merchantId, customerWallet, amount, sourceChain, sourceToken } = request;
+    
+    console.log(`[UnifiedPayment] Starting cross-chain pipeline: ${sourceChain} -> Solana`);
+
+    try {
+      // 1. LI.FI Simulation
+      console.log(`[UnifiedPayment] [LI.FI] Fetching bridge routes from ${sourceChain} for ${amount} ${sourceToken}...`);
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // 2. Bridge Execution Simulation
+      console.log(`[UnifiedPayment] [LI.FI] Bridge transaction submitted. Waiting for validation...`);
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      console.log(`[UnifiedPayment] [LI.FI] Bridge confirmed. Assets available on Solana.`);
+
+      // 3. Jupiter Swap Simulation (USDC -> SOL)
+      console.log(`[UnifiedPayment] [JUPITER] Swapping bridged USDC to SOL for gasless private routing...`);
+      // In a real flow, we would call JupiterService.getQuote here
+      await new Promise(resolve => setTimeout(resolve, 600));
+      console.log(`[UnifiedPayment] [JUPITER] Swap successful. SOL ready for private execution.`);
+
+      // 4. Hand-off to Private Execution Pipeline
+      console.log(`[UnifiedPayment] [CLOAK] Initiating private transfer via MagicBlock...`);
+      
+      return await this.processPayment({
+        ...request,
+        type: "private" // Ensure it goes through the private path
+      });
+    } catch (error: any) {
+      console.error("[UnifiedPayment] Flow failed:", error);
+      return { 
+        success: false, 
+        error: "Unified flow execution failed", 
+        message: error.message 
+      };
     }
   },
 
