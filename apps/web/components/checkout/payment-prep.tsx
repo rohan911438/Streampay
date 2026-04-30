@@ -192,16 +192,24 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
     setRoutingStep("lifi");
 
     try {
-      console.log("[PaymentPrep] 🟣 PART 1: Routing via LI.FI...");
-      console.log("[PaymentPrep] Selected Route:", crossChainRoute.fullRoute);
+      console.group('🟣 [StreamPay] Unified Pipeline: Part 1');
+      console.log("Routing via LI.FI...");
+      console.log("Selected Route:", crossChainRoute.fullRoute);
+      console.groupEnd();
+      
       await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate bridge time
 
       setRoutingStep("jupiter");
-      console.log("[PaymentPrep] 🟣 PART 2: Optimizing via Jupiter...");
+      console.group('🟣 [StreamPay] Unified Pipeline: Part 2');
+      console.log("Optimizing via Jupiter...");
+      console.groupEnd();
+      
       await new Promise(resolve => setTimeout(resolve, 1200)); // Simulate swap time
 
       setRoutingStep("private_execution");
-      console.log("[PaymentPrep] 🟣 PART 3: Executing privately via Cloak + MagicBlock...");
+      console.group('🟣 [StreamPay] Unified Pipeline: Part 3');
+      console.log("Executing privately via Cloak + MagicBlock...");
+      console.groupEnd();
 
       // Actually execute the final Solana transaction with wallet signature
       const walletAddress = publicKey?.toBase58() || "GfK6fP7vW1uN5N5m8WJp3Xk9R8z6Jp6Y7a3Z1Xm2Yn3B";
@@ -221,6 +229,11 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
       );
 
       if (result.success) {
+        console.group('✅ [StreamPay] Payment Finalized');
+        console.log('Signature:', result.signature);
+        console.log('Payment ID:', result.paymentId);
+        console.groupEnd();
+
         setRoutingStep("completed");
         setSuccessData({
           signature: result.signature,
@@ -229,12 +242,22 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
         });
         setPaymentSuccess(true);
       } else {
-        setActionError("Final execution failed.");
-        setRoutingStep("idle");
+        throw new Error("Final execution failed on-chain.");
       }
     } catch (err: any) {
-      console.error("[PaymentPrep] Unified flow error:", err);
-      setActionError(err.message || "An error occurred during the cross-chain payment flow.");
+      console.error("❌ [StreamPay] Pipeline Error:", err);
+      
+      let friendlyMessage = "An error occurred during the cross-chain payment flow.";
+      
+      if (err.code === "WALLET_REJECTED") {
+        friendlyMessage = "❌ You rejected the signature request in your wallet.";
+      } else if (err.message?.includes("No routes found")) {
+        friendlyMessage = "❌ LI.FI could not find a bridge route for this pair.";
+      } else {
+        friendlyMessage = `❌ Error: ${err.message || String(err)}`;
+      }
+
+      setActionError(friendlyMessage);
       setRoutingStep("idle");
     } finally {
       setIsPrivateSubmitting(false);

@@ -40,11 +40,19 @@ export const LiFiService = {
     const data = await response.json();
 
     if (!data.routes || data.routes.length === 0) {
-      throw new Error('No routes found for the specified parameters');
+      console.error('[LiFiService] No routes found for:', params);
+      throw new Error('No routes found for the specified parameters. Try a different amount or token.');
     }
 
     // LI.FI sorts routes by efficiency/cost, so the first one is usually the best
     const bestRoute = data.routes[0];
+
+    console.group('🚀 [LI.FI] Route Discovered');
+    console.log('Route ID:', bestRoute.id);
+    console.log('Tool:', bestRoute.steps[0].tool);
+    console.log('Est. Output:', bestRoute.toAmount);
+    console.log('Full Response:', data);
+    console.groupEnd();
 
     return {
       estimatedOutputAmount: bestRoute.toAmount,
@@ -94,7 +102,15 @@ export const JupiterService = {
       throw new Error(errorData.message || 'Failed to fetch Jupiter quote');
     }
 
-    return response.json();
+    const data = await response.json();
+    
+    console.group('🪐 [Jupiter] Quote Received');
+    console.log('Input:', inputMint);
+    console.log('Output SOL:', data.outAmount);
+    console.log('Price Impact:', data.priceImpactPct);
+    console.groupEnd();
+
+    return data;
   },
 
   async getSwapTransaction(quoteResponse: any, userPublicKey: string) {
