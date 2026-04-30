@@ -8,7 +8,8 @@
   "scripts": {
     "dev": "npm run --workspace web dev",
     "build": "npm run --workspace web build",
-    "start": "npm run --workspace web start"
+      "start": "npm run --workspace web start",
+      "rebuild": "npm rebuild --verbose"
   },
   "dependencies": {
     "@cloak.dev/sdk": "^0.1.6",
