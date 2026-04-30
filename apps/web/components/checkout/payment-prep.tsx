@@ -28,7 +28,7 @@ type PaymentPrepProps = {
   isDemo?: boolean;
 };
 
-type PaymentMode = "standard" | "private";
+type PaymentMode = "standard" | "private" | "cross_chain";
 
 type PlanSummary = {
   id: string | null;
@@ -63,7 +63,11 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPrivateSubmitting, setIsPrivateSubmitting] = useState(false);
   const [isTestSimulating, setIsTestSimulating] = useState(false);
-  const [paymentMode, setPaymentMode] = useState<"standard" | "private">("private");
+  const [paymentMode, setPaymentMode] = useState<PaymentMode>("private");
+  const [crossChainRoute, setCrossChainRoute] = useState<any>(null);
+  const [isFetchingRoute, setIsFetchingRoute] = useState(false);
+  const [sourceChain, setSourceChain] = useState("1"); // Ethereum
+  const [sourceToken, setSourceToken] = useState("USDC");
   const [plan, setPlan] = useState<PlanSummary>({
     id: null,
     name: "Starter Pro",
@@ -138,6 +142,53 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
 
   const priceLabel = `$${plan.priceUsdc.toFixed(2)}`;
   const intervalLabel = plan.billingInterval === "yearly" ? "/ Year" : "/ Month";
+
+  async function fetchCrossChainRoute() {
+    if (!plan.priceUsdc) return;
+    
+    setIsFetchingRoute(true);
+    setActionError(null);
+    try {
+      const response = await fetch("/api/cross-chain", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fromChain: sourceChain,
+          fromToken: sourceToken,
+          fromAmount: (plan.priceUsdc * 10 ** 6).toString(), // Assuming 6 decimals for USDC
+          toChain: "1151111081099710", // Solana
+          toToken: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC on Solana
+          fromAddress: publicKey?.toBase58() || "0x0000000000000000000000000000000000000000",
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to fetch route");
+      
+      setCrossChainRoute(data);
+    } catch (err: any) {
+      console.error("Route fetch error:", err);
+      setActionError("Could not find a valid cross-chain route. Please try a different chain or token.");
+    } finally {
+      setIsFetchingRoute(false);
+    }
+  }
+
+  useEffect(() => {
+    if (paymentMode === "cross_chain") {
+      fetchCrossChainRoute();
+    }
+  }, [paymentMode, sourceChain, sourceToken, plan.priceUsdc]);
+
+  async function onCrossChainPaymentClick() {
+    if (!crossChainRoute) {
+      setActionError("No valid route selected.");
+      return;
+    }
+    // In a real app, we would initiate the LI.FI SDK transaction here.
+    // For the hackathon, we show the route and simulate the initiation.
+    alert("Cross-chain routing initiated! LI.FI will now bridge your assets from " + sourceChain + " to Solana.");
+  }
 
   async function onStandardCheckoutClick() {
     setActionError(null);
@@ -468,10 +519,91 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
                   : "text-slate-500 hover:text-slate-900 hover:bg-white/50"
               )}
             >
-              <span className="text-[11px] font-black uppercase tracking-widest">Public Payment</span>
-              <span className="text-[9px] font-bold opacity-60 uppercase tracking-tighter">(Standard)</span>
+              <span className="text-[11px] font-black uppercase tracking-widest">Public</span>
+              <span className="text-[9px] font-bold opacity-60 uppercase tracking-tighter">(Native)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPaymentMode("cross_chain")}
+              className={cn(
+                "relative group flex flex-col items-center justify-center gap-1 rounded-2xl px-4 py-4 transition-all duration-300",
+                paymentMode === "cross_chain"
+                  ? "bg-slate-900 text-white shadow-[0_10px_20px_rgba(0,0,0,0.15)] scale-[1.02] z-10"
+                  : "text-slate-500 hover:text-slate-900 hover:bg-white/50"
+              )}
+            >
+              <span className="text-[11px] font-black uppercase tracking-widest">Cross-Chain</span>
+              <span className="text-[9px] font-bold opacity-80 uppercase tracking-tighter">(LI.FI)</span>
             </button>
           </div>
+
+          {paymentMode === "cross_chain" && (
+            <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">Source Chain</label>
+                  <select 
+                    value={sourceChain}
+                    onChange={(e) => setSourceChain(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold focus:outline-none"
+                  >
+                    <option value="1">Ethereum</option>
+                    <option value="137">Polygon</option>
+                    <option value="10">Optimism</option>
+                    <option value="42161">Arbitrum</option>
+                    <option value="8453">Base</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">Asset</label>
+                  <select 
+                    value={sourceToken}
+                    onChange={(e) => setSourceToken(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold focus:outline-none"
+                  >
+                    <option value="USDC">USDC</option>
+                    <option value="ETH">ETH</option>
+                    <option value="USDT">USDT</option>
+                  </select>
+                </div>
+              </div>
+
+              {isFetchingRoute ? (
+                <div className="flex items-center justify-center p-8 rounded-2xl border border-dashed border-slate-200">
+                  <div className="flex flex-col items-center gap-2">
+                    <RefreshCw className="h-5 w-5 text-slate-400 animate-spin" />
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Finding Best Route...</p>
+                  </div>
+                </div>
+              ) : crossChainRoute ? (
+                <div className="rounded-2xl border border-blue-200 bg-blue-50/50 p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-blue-600">Optimal Routing Path</p>
+                    <div className="px-2 py-0.5 rounded bg-blue-600 text-white text-[8px] font-black uppercase tracking-widest">
+                      LI.FI Engine
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="flex flex-col">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase">You Pay</span>
+                      <span className="text-sm font-black text-slate-900">{plan.priceUsdc} {sourceToken}</span>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-slate-300" />
+                    <div className="flex flex-col">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase">You Receive (Solana)</span>
+                      <span className="text-sm font-black text-emerald-600">
+                        {(Number(crossChainRoute.estimatedOutputAmount) / 10**6).toFixed(2)} USDC
+                      </span>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-blue-100 flex items-center justify-between">
+                    <span className="text-[9px] font-bold text-slate-400 uppercase">Est. Time: {Math.ceil(crossChainRoute.routeSteps[0]?.estimate.executionDuration / 60)} mins</span>
+                    <span className="text-[9px] font-bold text-slate-400 uppercase">Steps: {crossChainRoute.routeSteps.length}</span>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          )}
 
           {paymentMode === "private" ? (
             <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
@@ -590,19 +722,28 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
           )}
           
           <Button 
-            onClick={paymentMode === "standard" ? onStandardCheckoutClick : onPrivatePaymentClick}
-            disabled={(!connected && !isDemo) || isSubmitting || isTestSimulating || isPrivateSubmitting}
+            onClick={
+              paymentMode === "standard" 
+                ? onStandardCheckoutClick 
+                : paymentMode === "private" 
+                  ? onPrivatePaymentClick 
+                  : onCrossChainPaymentClick
+            }
+            disabled={((!connected && !isDemo) && paymentMode !== "cross_chain") || isSubmitting || isTestSimulating || isPrivateSubmitting || (paymentMode === "cross_chain" && !crossChainRoute)}
             className={cn(
               "w-full h-16 rounded-2xl text-white text-lg font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none shadow-2xl",
               paymentMode === "private"
                 ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200/50 hover:-translate-y-1"
-                : "bg-slate-900 hover:bg-slate-800 shadow-slate-200/50 hover:-translate-y-1"
+                : paymentMode === "cross_chain"
+                  ? "bg-blue-600 hover:bg-blue-700 shadow-blue-200/50 hover:-translate-y-1"
+                  : "bg-slate-900 hover:bg-slate-800 shadow-slate-200/50 hover:-translate-y-1"
             )}
           >
-            {isSubmitting || isPrivateSubmitting ? (
+            {isSubmitting || isPrivateSubmitting || isFetchingRoute ? (
               <>
                 <RefreshCw className="h-6 w-6 animate-spin" />
-                {paymentMode === "private" ? "Executing Private Transfer..." : "Processing..."}
+                {paymentMode === "private" ? "Executing Private Transfer..." : 
+                 paymentMode === "cross_chain" ? "Preparing Route..." : "Processing..."}
               </>
             ) : (
               <>
@@ -611,10 +752,16 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
                     <span className="text-xs font-bold opacity-80 mb-[-4px]">Fastest & Private</span>
                     <span>Secure Checkout</span>
                   </div>
+                ) : paymentMode === "cross_chain" ? (
+                  <div className="flex flex-col items-center">
+                    <span className="text-xs font-bold opacity-80 mb-[-4px]">Any Chain to Solana</span>
+                    <span>Bridge & Pay</span>
+                  </div>
                 ) : (
                   "Standard Subscribe"
                 )}
-                {paymentMode === "private" ? <ShieldCheck className="h-6 w-6" /> : <ArrowRight className="h-6 w-6" />}
+                {paymentMode === "private" ? <ShieldCheck className="h-6 w-6" /> : 
+                 paymentMode === "cross_chain" ? <RefreshCw className="h-6 w-6" /> : <ArrowRight className="h-6 w-6" />}
               </>
             )}
           </Button>
