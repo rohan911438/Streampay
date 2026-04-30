@@ -1,5 +1,1 @@
-{
-  "/page": "app/page.js",
-  "/api/users/sync/route": "app/api/users/sync/route.js",
-  "/(merchant)/dashboard/page": "app/(merchant)/dashboard/page.js"
-}
+{}

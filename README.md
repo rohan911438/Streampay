@@ -112,6 +112,39 @@ ngrok http 3000
 
 ---
 
+## 🔗 Payment Router Contract Deployment
+
+The StreamPay Payment Router contract is now live on Solana Devnet:
+
+### Contract Details
+- **Program ID**: `Bs464Nm3DY6qNafJn5kmVHxh9R8nKRLpuXfdDrZQMd76`
+- **Deployment Signature**: `5QV3WoHgcumYgH5brQpBKBdNcfAoeZt2XCofdrJG8y65JxEX8rdhpzGhGeY1usT1eDefzdp4kmpfk1iv5smFfJHy`
+- **Status**: ✅ Finalized
+- **Timestamp**: Apr 30, 2026 at 10:15:33 IST
+
+### Verify Transaction
+View the deployment on [Solana Explorer (Devnet)](https://explorer.solana.com/tx/5QV3WoHgcumYgH5brQpBKBdNcfAoeZt2XCofdrJG8y65JxEX8rdhpzGhGeY1usT1eDefzdp4kmpfk1iv5smFfJHy?cluster=devnet)
+
+### What the Contract Does
+- **Records Payment Intents**: Creates `PaymentRecord` accounts with initial `Pending` status
+- **Confirms Execution**: Updates records to `Completed` with execution reference from Cloak/MagicBlock
+- **Flexible Authorization**: Supports user, merchant, or backend authority confirmation
+- **Privacy-Aware**: Designed to work seamlessly with Cloak private transfers
+
+### Integration
+The contract is integrated into the TypeScript ecosystem via:
+```typescript
+import { 
+  createPaymentRecord, 
+  confirmPaymentRecord,
+  PAYMENT_ROUTER_PROGRAM_ID 
+} from "@paystream/solana";
+```
+
+See [contracts/payment-router/README.md](contracts/payment-router/README.md) for detailed integration examples.
+
+---
+
 ## 🌟 Why This Matters
 
 Privacy is not just a feature; it is a **fundamental requirement** for the mass adoption of blockchain in global finance. StreamPay enables businesses to pay their employees, settle vendor invoices, and manage subscriptions with the same level of confidentiality they expect from traditional banking, but with the speed, efficiency, and transparency of the Solana network.

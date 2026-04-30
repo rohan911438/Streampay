@@ -12,3 +12,7 @@ export const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey(
 export const SYSTEM_PROGRAM_ID = new PublicKey("11111111111111111111111111111111");
 
 export const MEMO_PROGRAM_ID = new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
+
+// Payment Router Contract (Deployed on Solana Devnet)
+// Deployment Signature: 5QV3WoHgcumYgH5brQpBKBdNcfAoeZt2XCofdrJG8y65JxEX8rdhpzGhGeY1usT1eDefzdp4kmpfk1iv5smFfJHy
+export const PAYMENT_ROUTER_PROGRAM_ID = new PublicKey("Bs464Nm3DY6qNafJn5kmVHxh9R8nKRLpuXfdDrZQMd76");
