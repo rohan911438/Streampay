@@ -129,6 +129,21 @@
       "transactionReference": null,
       "id": "e653b356-790b-439d-9369-5b32a3974b1a",
       "paidAt": "2026-04-30T05:34:49.598Z"
+    },
+    {
+      "merchantId": "00000000-0000-0000-0000-000000000000",
+      "walletAddress": "5L9gFTDpsVvWWYyFpL6thhxpoY7iFUV5UY6Jt8S5vAzc",
+      "amountUsdc": 10,
+      "planId": "5a9b4523-36ca-40bd-9a3f-a4bdc0530e1a",
+      "status": "pending",
+      "type": "private",
+      "provider": "cloak",
+      "executionLayer": "direct",
+      "userId": null,
+      "subscriptionId": null,
+      "transactionReference": null,
+      "id": "33b8ea15-24cb-41f5-8dd9-7306b75a6801",
+      "paidAt": "2026-04-30T12:26:34.580Z"
     }
   ],
   "checkoutSessions": [

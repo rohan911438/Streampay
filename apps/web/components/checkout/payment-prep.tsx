@@ -11,11 +11,18 @@ import {
   Wallet, 
   ArrowRight, 
   Info,
-  CheckCircle2
+  CheckCircle2,
+  AlertCircle,
+  Loader,
+  RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { 
+  executePaymentWithWalletSignature,
+  TransactionError
+} from "@/lib/transaction-signing";
 
 type PaymentPrepProps = {
   isDemo?: boolean;
@@ -64,8 +71,8 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
     billingInterval: "monthly",
   });
   const [paymentSuccess, setPaymentSuccess] = useState<boolean>(false);
-  const [successData, setSuccessData] = useState<{ signature: string; id: string } | null>(null);
-  const { connected, publicKey, wallets } = useWallet();
+  const [successData, setSuccessData] = useState<{ signature: string; id: string; confirmed?: boolean } | null>(null);
+  const { connected, publicKey, wallets, signTransaction } = useWallet();
 
   useEffect(() => {
     setMounted(true);
@@ -179,43 +186,77 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
   async function onPrivatePaymentClick() {
     setActionError(null);
 
-    // For demo mode, allow without wallet connection
-    const walletAddr = publicKey?.toBase58() ?? (isDemo ? "11111111111111111111111111111112" : null);
-
-    if (!walletAddr && !isDemo) {
+    // Validate wallet connection
+    if (!connected || !publicKey) {
       setActionError("Please connect your wallet first.");
       return;
     }
 
+    if (!signTransaction) {
+      setActionError("Your wallet does not support transaction signing.");
+      return;
+    }
+
+    const walletAddress = publicKey.toBase58();
+
     setIsPrivateSubmitting(true);
 
     try {
-      const response = await fetch("/api/cloak/pay", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          walletAddress: walletAddr,
-          planId: plan.id,
-          amount: plan.priceUsdc,
-        }),
-      });
+      console.log("[PaymentPrep] Starting private payment with wallet signature...");
+      
+      // Create wallet context object for the signing utility
+      const walletContext = {
+        connected,
+        publicKey,
+        signTransaction,
+      } as any;
 
-      const data = (await response.json()) as CloakPayResponse;
+      // Execute the complete payment flow with wallet signing
+      // This will:
+      // 1. Prepare unsigned transaction from backend
+      // 2. Decode base64 transaction
+      // 3. Sign it using wallet adapter (opens Phantom)
+      // 4. Submit signed transaction to network
+      // 5. Wait for confirmation
+      const result = await executePaymentWithWalletSignature(
+        walletAddress,
+        plan.priceUsdc,
+        walletContext,
+        plan.id ?? undefined,
+        "private"
+      );
 
-      if (!response.ok || !data.success) {
-        setActionError(data.message ?? data.error ?? "Private payment failed. Please try again.");
-        return;
+      if (result.success) {
+        console.log("[PaymentPrep] Payment successful:", result.signature);
+        setSuccessData({
+          signature: result.signature,
+          id: result.paymentId,
+          confirmed: result.confirmed
+        });
+        setPaymentSuccess(true);
+      } else {
+        setActionError("Payment failed. Please try again.");
       }
-
-      setSuccessData({
-        signature: data.transactionSignature || "",
-        id: data.subscriptionId || ""
-      });
-      setPaymentSuccess(true);
-    } catch {
-      setActionError("A network error occurred. Please try again.");
+    } catch (error) {
+      console.error("[PaymentPrep] Payment error:", error);
+      
+      if (error instanceof TransactionError) {
+        if (error.code === "WALLET_REJECTED") {
+          setActionError("❌ You rejected the transaction signing request. Please try again.");
+        } else if (error.code === "WALLET_NOT_CONNECTED") {
+          setActionError("❌ Please connect your wallet first.");
+        } else if (error.code === "SIGN_FAILED") {
+          setActionError("❌ Failed to sign the transaction. Please try again.");
+        } else if (error.code === "SUBMIT_FAILED") {
+          setActionError("❌ Failed to submit the transaction to the network. Please try again.");
+        } else if (error.code === "PREPARE_FAILED") {
+          setActionError("❌ Failed to prepare the transaction. Please try again.");
+        } else {
+          setActionError(`❌ Error: ${error.message}`);
+        }
+      } else {
+        setActionError("❌ An unexpected error occurred. Please try again.");
+      }
     } finally {
       setIsPrivateSubmitting(false);
     }
@@ -274,44 +315,77 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
   }
 
   if (paymentSuccess) {
+    const isConfirmed = successData?.confirmed === true;
+    
     return (
       <Card className="border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.1)] overflow-hidden animate-in zoom-in-95 duration-500">
-        <div className="bg-emerald-600 p-8 text-white flex flex-col items-center text-center space-y-4">
-          <div className="h-20 w-20 rounded-full bg-white/20 flex items-center justify-center animate-bounce">
+        <div className={`p-8 text-white flex flex-col items-center text-center space-y-4 ${
+          isConfirmed ? "bg-emerald-600" : "bg-blue-600"
+        }`}>
+          <div className={`h-20 w-20 rounded-full flex items-center justify-center ${
+            isConfirmed 
+              ? "bg-white/20 animate-bounce" 
+              : "bg-white/20 animate-pulse"
+          }`}>
             <CheckCircle2 className="h-10 w-10 text-white" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-3xl font-black tracking-tight uppercase">Payment Successful</h3>
+            <h3 className="text-3xl font-black tracking-tight uppercase">
+              {isConfirmed ? "Payment Confirmed" : "Payment Submitted"}
+            </h3>
             <p className="text-emerald-100 font-bold uppercase tracking-widest text-xs">
-              Your private subscription is now active
+              {isConfirmed 
+                ? "Your private subscription is now active"
+                : "Transaction pending on-chain confirmation"
+              }
             </p>
           </div>
         </div>
         <CardContent className="p-8 space-y-6">
-          <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-6 space-y-4">
+          <div className={`rounded-2xl border p-6 space-y-4 ${
+            isConfirmed
+              ? "border-emerald-100 bg-emerald-50/50"
+              : "border-blue-100 bg-blue-50/50"
+          }`}>
             <div className="flex items-center gap-3">
               <div className="h-6 w-6 rounded bg-slate-900 flex items-center justify-center shrink-0">
-                <Zap className="h-3.5 w-3.5 text-emerald-400" />
+                {isConfirmed ? (
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                ) : (
+                  <Loader className="h-3.5 w-3.5 text-blue-400 animate-spin" />
+                )}
               </div>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Execution Layer</p>
-                <p className="text-sm font-black text-slate-900">Secured by MagicBlock</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  {isConfirmed ? "Status" : "Transaction Status"}
+                </p>
+                <p className="text-sm font-black text-slate-900">
+                  {isConfirmed ? "✅ Confirmed" : "⏳ Pending"}
+                </p>
               </div>
             </div>
             <div className="pt-4 border-t border-emerald-100/50 space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Subscription ID</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Payment ID</span>
                 <span className="text-xs font-mono font-bold text-slate-900">{successData?.id.slice(0, 18)}...</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Transaction</span>
-                <span className="text-xs font-mono font-bold text-slate-900">{successData?.signature.slice(0, 12)}...</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Signature</span>
+                <a
+                  href={`https://solscan.io/tx/${successData?.signature}?cluster=devnet`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-mono font-bold text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                  {successData?.signature.slice(0, 12)}...
+                </a>
               </div>
             </div>
           </div>
 
           <p className="text-center text-sm text-slate-500 leading-relaxed px-4">
-            Your payment has been processed privately using Cloak and optimized via <span className="font-black text-slate-900">MagicBlock</span>. This means your transaction details—including the amount and recipient—are completely hidden on the blockchain, while ensuring maximum security and speed.
+            Your payment was signed by your wallet ({publicKey?.toBase58().slice(0, 6)}...{publicKey?.toBase58().slice(-6)}) and submitted to the Solana network. 
+            {!isConfirmed && " Check back in a few moments for confirmation status."}
           </p>
 
           <Button 
@@ -506,9 +580,12 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
         {/* CTA Button */}
         <div className="space-y-4 pt-2">
           {actionError && (
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-xs font-bold animate-in shake-in duration-300">
-              <Info className="h-4 w-4" />
-              {actionError}
+            <div className="flex items-start gap-2 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-semibold animate-in shake-in duration-300">
+              <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold mb-1">Payment Error</p>
+                <p className="text-sm">{actionError}</p>
+              </div>
             </div>
           )}
           
@@ -573,28 +650,5 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-// Separate component for RefreshCw to avoid build error
-function RefreshCw(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-      <path d="M21 3v5h-5" />
-      <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-      <path d="M3 21v-5h5" />
-    </svg>
   );
 }
