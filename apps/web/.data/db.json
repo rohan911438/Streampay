@@ -1,4 +1,5 @@
 {
+  "merchants": [],
   "plans": [
     {
       "id": "5a9b4523-36ca-40bd-9a3f-a4bdc0530e1a",
@@ -26,6 +27,12 @@
       "id": "4016ebd6-70dd-450a-b145-66dca4d809fb",
       "walletAddress": "5L9gFTDpsVvWWYyFpL6thhxpoY7iFUV5UY6Jt8S5vAzc",
       "createdAt": "2026-04-28T12:02:07.040Z"
+    },
+    {
+      "id": "b86664e4-7197-4b51-9ade-258e5113d1af",
+      "walletAddress": "11111111111111111111111111111112",
+      "merchantId": "00000000-0000-0000-0000-000000000000",
+      "createdAt": "2026-04-30T05:40:59.167Z"
     }
   ],
   "subscriptions": [
@@ -39,6 +46,89 @@
       "billingDate": 27,
       "createdAt": "2026-04-27T04:17:20.931Z",
       "updatedAt": "2026-04-27T04:17:20.931Z"
+    },
+    {
+      "id": "544ebdda-67e5-407e-9219-7147a17b1371",
+      "userId": "4016ebd6-70dd-450a-b145-66dca4d809fb",
+      "planId": "5a9b4523-36ca-40bd-9a3f-a4bdc0530e1a",
+      "merchantId": "00000000-0000-0000-0000-000000000000",
+      "status": "pending",
+      "currentPeriodStart": null,
+      "currentPeriodEnd": null,
+      "billingDate": 30,
+      "createdAt": "2026-04-30T05:40:43.382Z",
+      "updatedAt": "2026-04-30T05:40:43.382Z"
+    },
+    {
+      "id": "b4e52016-4fc0-4b12-bdca-1ff501f6de75",
+      "userId": "b86664e4-7197-4b51-9ade-258e5113d1af",
+      "planId": "5a9b4523-36ca-40bd-9a3f-a4bdc0530e1a",
+      "merchantId": "00000000-0000-0000-0000-000000000000",
+      "status": "pending",
+      "currentPeriodStart": null,
+      "currentPeriodEnd": null,
+      "billingDate": 30,
+      "createdAt": "2026-04-30T05:40:59.184Z",
+      "updatedAt": "2026-04-30T05:40:59.184Z"
+    },
+    {
+      "id": "2a6c00a4-cb2d-4a54-acc0-38fc249eca21",
+      "userId": "b86664e4-7197-4b51-9ade-258e5113d1af",
+      "planId": "5a9b4523-36ca-40bd-9a3f-a4bdc0530e1a",
+      "merchantId": "00000000-0000-0000-0000-000000000000",
+      "status": "active",
+      "currentPeriodStart": "2026-04-30T05:43:12.928Z",
+      "currentPeriodEnd": null,
+      "billingDate": 30,
+      "createdAt": "2026-04-30T05:43:08.181Z",
+      "updatedAt": "2026-04-30T05:43:12.928Z"
+    }
+  ],
+  "payments": [
+    {
+      "merchantId": "00000000-0000-0000-0000-000000000000",
+      "walletAddress": "5L9gFTDpsVvWWYyFpL6thhxpoY7iFUV5UY6Jt8S5vAzc",
+      "amountUsdc": 10,
+      "planId": "5a9b4523-36ca-40bd-9a3f-a4bdc0530e1a",
+      "status": "failed",
+      "type": "private",
+      "provider": "cloak",
+      "executionLayer": "magicblock",
+      "userId": null,
+      "subscriptionId": null,
+      "transactionReference": null,
+      "id": "a72639f8-5e79-47d5-a10c-c7d5d69614ef",
+      "paidAt": "2026-04-30T05:22:21.057Z"
+    },
+    {
+      "merchantId": "00000000-0000-0000-0000-000000000000",
+      "walletAddress": "5L9gFTDpsVvWWYyFpL6thhxpoY7iFUV5UY6Jt8S5vAzc",
+      "amountUsdc": 10,
+      "planId": "5a9b4523-36ca-40bd-9a3f-a4bdc0530e1a",
+      "status": "failed",
+      "type": "private",
+      "provider": "cloak",
+      "executionLayer": "magicblock",
+      "userId": null,
+      "subscriptionId": null,
+      "transactionReference": null,
+      "id": "7471cb4a-d89d-425b-bb68-a53ee134b591",
+      "paidAt": "2026-04-30T05:31:01.569Z"
+    },
+    {
+      "merchantId": "00000000-0000-0000-0000-000000000000",
+      "walletAddress": "5L9gFTDpsVvWWYyFpL6thhxpoY7iFUV5UY6Jt8S5vAzc",
+      "amountUsdc": 10,
+      "planId": "5a9b4523-36ca-40bd-9a3f-a4bdc0530e1a",
+      "status": "completed",
+      "type": "private",
+      "provider": "cloak",
+      "executionLayer": "magicblock",
+      "userId": null,
+      "subscriptionId": null,
+      "transactionReference": null,
+      "id": "e653b356-790b-439d-9369-5b32a3974b1a",
+      "paidAt": "2026-04-30T05:34:49.598Z"
     }
   ],
   "checkoutSessions": [
@@ -51,6 +141,42 @@
       "status": "pending",
       "createdAt": "2026-04-27T04:17:20.934Z",
       "updatedAt": "2026-04-27T04:17:20.934Z",
+      "completedAt": null
+    },
+    {
+      "id": "ab18b27d-1427-436e-a3c1-9a7307a7eda4",
+      "userId": "4016ebd6-70dd-450a-b145-66dca4d809fb",
+      "planId": "5a9b4523-36ca-40bd-9a3f-a4bdc0530e1a",
+      "subscriptionId": "544ebdda-67e5-407e-9219-7147a17b1371",
+      "merchantId": "00000000-0000-0000-0000-000000000000",
+      "checkoutSessionId": "04309370-7d33-4e55-b1a3-3919714bb4ff",
+      "status": "pending",
+      "createdAt": "2026-04-30T05:40:43.571Z",
+      "updatedAt": "2026-04-30T05:40:43.571Z",
+      "completedAt": null
+    },
+    {
+      "id": "d4f3e9ca-0d68-4399-9f0f-98c21f5f11dc",
+      "userId": "b86664e4-7197-4b51-9ade-258e5113d1af",
+      "planId": "5a9b4523-36ca-40bd-9a3f-a4bdc0530e1a",
+      "subscriptionId": "b4e52016-4fc0-4b12-bdca-1ff501f6de75",
+      "merchantId": "00000000-0000-0000-0000-000000000000",
+      "checkoutSessionId": "0ec472cb-2835-4c23-80ce-54fa2c392aa7",
+      "status": "pending",
+      "createdAt": "2026-04-30T05:40:59.199Z",
+      "updatedAt": "2026-04-30T05:40:59.199Z",
+      "completedAt": null
+    },
+    {
+      "id": "f924ac0f-b508-493c-bb95-4343b910ca17",
+      "userId": "b86664e4-7197-4b51-9ade-258e5113d1af",
+      "planId": "5a9b4523-36ca-40bd-9a3f-a4bdc0530e1a",
+      "subscriptionId": "2a6c00a4-cb2d-4a54-acc0-38fc249eca21",
+      "merchantId": "00000000-0000-0000-0000-000000000000",
+      "checkoutSessionId": "41f172d3-fcc2-49ca-8003-5544497dd8bb",
+      "status": "pending",
+      "createdAt": "2026-04-30T05:43:08.185Z",
+      "updatedAt": "2026-04-30T05:43:08.185Z",
       "completedAt": null
     }
   ],
@@ -66,6 +192,82 @@
         "walletAddress": "A8AYXz5Cx74E3fFKBn2oSo1SSBTA9ftseiv4bwsS8P9D"
       },
       "createdAt": "2026-04-27T04:17:20.938Z"
+    },
+    {
+      "id": "4bf1d291-3718-400d-b56b-ae7904873e3d",
+      "subscriptionId": "5L9gFTDpsVvWWYyFpL6thhxpoY7iFUV5UY6Jt8S5vAzc",
+      "merchantId": "00000000-0000-0000-0000-000000000000",
+      "eventType": "payment_success",
+      "provider": "cloak",
+      "executionLayer": "magicblock",
+      "amountUsdc": 10,
+      "metadata": {
+        "userId": "5L9gFTDpsVvWWYyFpL6thhxpoY7iFUV5UY6Jt8S5vAzc",
+        "providerEventId": "SIMULATED-REF",
+        "merchant_id": "00000000-0000-0000-0000-000000000000",
+        "magicBlockRef": "SIMULATED-REF"
+      },
+      "createdAt": "2026-04-30T05:34:49.692Z"
+    },
+    {
+      "id": "dfaf450c-914a-4ec3-ad40-580a630ee27c",
+      "subscriptionId": "544ebdda-67e5-407e-9219-7147a17b1371",
+      "merchantId": "00000000-0000-0000-0000-000000000000",
+      "eventType": "subscription_created",
+      "provider": "dodo",
+      "executionLayer": null,
+      "amountUsdc": 10,
+      "metadata": {
+        "email": "demo@example.com",
+        "name": "Demo User",
+        "walletAddress": "5L9gFTDpsVvWWYyFpL6thhxpoY7iFUV5UY6Jt8S5vAzc"
+      },
+      "createdAt": "2026-04-30T05:40:43.618Z"
+    },
+    {
+      "id": "b4338094-288c-42ea-8619-dd97edb5f930",
+      "subscriptionId": "b4e52016-4fc0-4b12-bdca-1ff501f6de75",
+      "merchantId": "00000000-0000-0000-0000-000000000000",
+      "eventType": "subscription_created",
+      "provider": "dodo",
+      "executionLayer": null,
+      "amountUsdc": 10,
+      "metadata": {
+        "email": "demo@example.com",
+        "name": "Demo User",
+        "walletAddress": "11111111111111111111111111111112"
+      },
+      "createdAt": "2026-04-30T05:40:59.213Z"
+    },
+    {
+      "id": "8e479122-87ca-4541-a14c-c3fbd54852ab",
+      "subscriptionId": "2a6c00a4-cb2d-4a54-acc0-38fc249eca21",
+      "merchantId": "00000000-0000-0000-0000-000000000000",
+      "eventType": "subscription_created",
+      "provider": "dodo",
+      "executionLayer": null,
+      "amountUsdc": 10,
+      "metadata": {
+        "email": "demo@example.com",
+        "name": "Demo User",
+        "walletAddress": "11111111111111111111111111111112"
+      },
+      "createdAt": "2026-04-30T05:43:08.192Z"
+    },
+    {
+      "id": "b83bb96c-fde3-4817-95ad-5b67196aeb6f",
+      "subscriptionId": "2a6c00a4-cb2d-4a54-acc0-38fc249eca21",
+      "merchantId": "00000000-0000-0000-0000-000000000000",
+      "eventType": "payment_success",
+      "provider": "dodo",
+      "executionLayer": null,
+      "amountUsdc": 10,
+      "metadata": {
+        "source": "testing_simulation",
+        "timestamp": "2026-04-30T05:43:12.977Z",
+        "warning": "This payment was simulated for testing. Replace with real webhook in production."
+      },
+      "createdAt": "2026-04-30T05:43:13.039Z"
     }
   ]
 }

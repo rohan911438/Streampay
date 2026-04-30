@@ -1,14 +1,5 @@
 import { NextResponse } from "next/server";
-import {
-  findLatestSubscriptionIdForUser,
-  findOrCreateUserByWallet,
-  updateSubscriptionStatus,
-  recordSubscriptionEvent,
-  updateCheckoutSessionRecordStatus,
-  isLikelySolanaWalletAddress,
-  resolveCheckoutPlan,
-} from "@/lib/subscriptions-db";
-import { db } from "@paystream/db";
+import { jsonDb } from "@/lib/json-db";
 
 /**
  * TEMPORARY TESTING ENDPOINT
@@ -28,6 +19,10 @@ import { db } from "@paystream/db";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+function isLikelySolanaWalletAddress(value: string): boolean {
+  return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(value);
+}
+
 export async function POST(req: Request) {
   const { searchParams } = new URL(req.url);
   const subscriptionId = searchParams.get("subscriptionId");
@@ -39,10 +34,8 @@ export async function POST(req: Request) {
   if (!subscriptionId && !walletAddress) {
     return NextResponse.json(
       {
-        error:
-          "Either subscriptionId or walletAddress is required.",
-        warning:
-          "This is a temporary testing endpoint. It will be replaced with webhook-based updates.",
+        error: "Either subscriptionId or walletAddress is required.",
+        warning: "This is a temporary testing endpoint. It will be replaced with webhook-based updates.",
       },
       { status: 400 }
     );
@@ -59,16 +52,24 @@ export async function POST(req: Request) {
 
   try {
     let finalSubscriptionId = subscriptionId;
-    let userId: string | null = null;
     let finalAmountUsdc = initialAmountUsdc;
 
-    // Resolve subscription and user
-    if (walletAddress) {
-      const user = await findOrCreateUserByWallet(walletAddress);
-      userId = user.id;
-
-      if (!finalSubscriptionId) {
-        finalSubscriptionId = await findLatestSubscriptionIdForUser(userId);
+    // If walletAddress provided, try to find subscription
+    if (!finalSubscriptionId && walletAddress) {
+      // Get user by wallet
+      const users = await jsonDb.listUsers();
+      const user = users.find(u => u.walletAddress === walletAddress);
+      
+      if (user) {
+        // Get latest subscription for user
+        const subscriptions = await jsonDb.listSubscriptions();
+        const userSub = subscriptions
+          .filter(s => s.userId === user.id)
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+        
+        if (userSub) {
+          finalSubscriptionId = userSub.id;
+        }
       }
     }
 
@@ -79,67 +80,41 @@ export async function POST(req: Request) {
       );
     }
 
-    // Get subscription details to find user_id and amount if not already known
-    if (!userId) {
-      const subResult = await db.query<{ user_id: string; plan_id: string }>(
-        "SELECT user_id, plan_id FROM subscriptions WHERE id = $1 LIMIT 1",
-        [finalSubscriptionId]
+    // Get subscription from JSON DB
+    const subscriptions = await jsonDb.listSubscriptions();
+    const subscription = subscriptions.find(s => s.id === finalSubscriptionId);
+
+    if (!subscription) {
+      return NextResponse.json(
+        { error: "Subscription not found." },
+        { status: 404 }
       );
+    }
 
-      if (!subResult.rows[0]) {
-        return NextResponse.json(
-          { error: "Subscription not found." },
-          { status: 404 }
-        );
-      }
-
-      userId = subResult.rows[0].user_id;
-
-      // Get plan price if amount not provided
-      if (finalAmountUsdc === null) {
-        const planResult = await db.query<{ price_usdc: string }>(
-          "SELECT price_usdc FROM plans WHERE id = $1 LIMIT 1",
-          [subResult.rows[0].plan_id]
-        );
-
-        if (planResult.rows[0]) {
-          const planPrice = Number(planResult.rows[0].price_usdc);
-          if (Number.isFinite(planPrice)) {
-            finalAmountUsdc = planPrice;
-          }
-        }
+    // Get plan price if amount not provided
+    if (finalAmountUsdc === null) {
+      const plans = await jsonDb.listPlans();
+      const plan = plans.find(p => p.id === subscription.planId);
+      if (plan) {
+        finalAmountUsdc = plan.priceUsdc;
       }
     }
 
-    // Mark subscription as active
-    await updateSubscriptionStatus({
-      subscriptionId: finalSubscriptionId,
-      status: "active",
-    });
+    // Update subscription status to active
+    await jsonDb.updateSubscriptionStatus(finalSubscriptionId, "active");
 
     // Record payment success event
-    await recordSubscriptionEvent({
-      userId,
+    await jsonDb.recordSubscriptionEvent({
       subscriptionId: finalSubscriptionId,
-      amountUsdc: finalAmountUsdc ?? undefined,
       eventType: "payment_success",
       provider: "dodo",
-      payload: {
+      amountUsdc: finalAmountUsdc ?? 0,
+      metadata: {
         source: "testing_simulation",
         timestamp: new Date().toISOString(),
-        warning:
-          "This payment was simulated for testing. Replace with real webhook in production.",
+        warning: "This payment was simulated for testing. Replace with real webhook in production.",
       },
     });
-
-    // Update checkout session if provided
-    if (checkoutSessionId) {
-      await updateCheckoutSessionRecordStatus({
-        checkoutSessionId,
-        subscriptionId: finalSubscriptionId,
-        status: "completed",
-      });
-    }
 
     return NextResponse.json(
       {
@@ -148,8 +123,7 @@ export async function POST(req: Request) {
         status: "active",
         amount: finalAmountUsdc,
         checkoutSessionUpdated: !!checkoutSessionId,
-        warning:
-          "This is a temporary testing endpoint. Real webhook updates will replace this.",
+        warning: "This is a temporary testing endpoint. Real webhook updates will replace this.",
       },
       { status: 200 }
     );
@@ -166,18 +140,14 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-
   return NextResponse.json(
     {
-      message:
-        "Payment simulation testing endpoint (temporary). Use POST to simulate a successful payment.",
+      message: "Payment simulation testing endpoint (temporary). Use POST to simulate a successful payment.",
       warning: "This endpoint is for testing only and will be replaced with webhook integration.",
       usage: {
         method: "POST",
         queryParams: {
-          subscriptionId:
-            "UUID of subscription to activate (optional if walletAddress provided)",
+          subscriptionId: "UUID of subscription to activate (optional if walletAddress provided)",
           walletAddress: "Solana wallet address (optional if subscriptionId provided)",
           checkoutSessionId: "Checkout session ID to mark as completed (optional)",
           amountUsdc: "Payment amount in USDC (optional - uses plan price if not provided)",

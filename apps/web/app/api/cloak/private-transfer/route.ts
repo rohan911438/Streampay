@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCloakService, PrivateTransferMetadata } from "@paystream/solana";
 import { db } from "@paystream/db";
-import { Keypair } from "@solana/web3.js";
+import { keypairFromSecretKeyInput, normalizeSecretKeyInput } from "@/lib/secret-key-utils";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -41,15 +41,11 @@ function validateRequest(body: unknown): body is PrivateTransferRequestBody {
 }
 
 /**
- * Helper to decode base64 private key
+ * Helper to decode a private key from base64, base58, JSON array, or raw bytes.
  */
-function decodePrivateKey(base64Key: string): Uint8Array {
+function decodePrivateKey(privateKeyInput: string): Uint8Array {
   try {
-    const buffer = Buffer.from(base64Key, "base64");
-    if (buffer.length !== 64) {
-      throw new Error("Private key must be 64 bytes");
-    }
-    return new Uint8Array(buffer);
+    return normalizeSecretKeyInput(privateKeyInput);
   } catch (error) {
     throw new Error(`Invalid private key format: ${error instanceof Error ? error.message : String(error)}`);
   }
@@ -149,12 +145,14 @@ export async function POST(req: Request) {
     );
 
     // Store transaction in database
+    const senderKeypair = keypairFromSecretKeyInput(privateKeyBytes);
+
     const txRecord = await db.insert(
       "private_transactions",
       {
         user_id: userId,
         subscription_id: subscriptionId || null,
-        sender_address: Keypair.fromSecretKey(privateKeyBytes).publicKey.toString(),
+        sender_address: senderKeypair.publicKey.toString(),
         recipient_address: recipientAddress,
         amount_usdc: amountUsdc,
         transaction_signature: transferResult.transactionSignature,

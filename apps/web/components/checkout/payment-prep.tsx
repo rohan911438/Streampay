@@ -135,7 +135,8 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
   async function onStandardCheckoutClick() {
     setActionError(null);
 
-    if (!connected) {
+    // For demo mode, allow without wallet connection
+    if (!isDemo && !connected) {
       setActionError("Please connect your wallet first.");
       return;
     }
@@ -156,7 +157,7 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
         body: JSON.stringify({
           name: customerName.trim(),
           email: customerEmail.trim(),
-          walletAddress: publicKey?.toBase58() ?? null,
+          walletAddress: publicKey?.toBase58() ?? (isDemo ? "11111111111111111111111111111112" : null),
         }),
       });
 
@@ -178,7 +179,10 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
   async function onPrivatePaymentClick() {
     setActionError(null);
 
-    if (!connected || !publicKey) {
+    // For demo mode, allow without wallet connection
+    const walletAddr = publicKey?.toBase58() ?? (isDemo ? "11111111111111111111111111111112" : null);
+
+    if (!walletAddr && !isDemo) {
       setActionError("Please connect your wallet first.");
       return;
     }
@@ -192,7 +196,7 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          walletAddress: publicKey.toBase58(),
+          walletAddress: walletAddr,
           planId: plan.id,
           amount: plan.priceUsdc,
         }),
@@ -220,7 +224,8 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
   async function onTestSimulatePayment() {
     setActionError(null);
 
-    if (!connected) {
+    // For demo mode, allow without wallet connection
+    if (!isDemo && !connected) {
       setActionError("Please connect your wallet first.");
       return;
     }
@@ -236,7 +241,7 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
         body: JSON.stringify({
           name: customerName.trim() || "Test User",
           email: customerEmail.trim() || "test@example.com",
-          walletAddress: publicKey?.toBase58() ?? null,
+          walletAddress: publicKey?.toBase58() ?? (isDemo ? "11111111111111111111111111111112" : null),
         }),
       });
 
@@ -509,7 +514,7 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
           
           <Button 
             onClick={paymentMode === "standard" ? onStandardCheckoutClick : onPrivatePaymentClick}
-            disabled={!connected || isSubmitting || isTestSimulating || isPrivateSubmitting}
+            disabled={(!connected && !isDemo) || isSubmitting || isTestSimulating || isPrivateSubmitting}
             className={cn(
               "w-full h-16 rounded-2xl text-white text-lg font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none shadow-2xl",
               paymentMode === "private"
@@ -541,7 +546,7 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
           {isDemo && (
             <Button 
               onClick={onTestSimulatePayment}
-              disabled={!connected || isSubmitting || isTestSimulating || isPrivateSubmitting}
+              disabled={isSubmitting || isTestSimulating || isPrivateSubmitting}
               variant="secondary"
               className="w-full h-12 rounded-xl text-sm font-black uppercase tracking-widest bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100"
             >

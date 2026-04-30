@@ -7,8 +7,8 @@
 
 import { getCloakService } from "@paystream/solana";
 import { db } from "@paystream/db";
-import { Keypair } from "@solana/web3.js";
 import { getMagicBlockService } from "./magicblock-service";
+import { keypairFromSecretKeyInput, normalizeSecretKeyInput } from "./secret-key-utils";
 
 /**
  * Process a private subscription payment
@@ -24,7 +24,7 @@ export async function processPrivateSubscriptionPayment({
 }: {
   userId: string;
   subscriptionId: string;
-  senderPrivateKey: Uint8Array; // 64-byte keypair
+  senderPrivateKey: string | Uint8Array;
   merchantWalletAddress: string;
   plan: {
     id: string;
@@ -35,11 +35,13 @@ export async function processPrivateSubscriptionPayment({
   const magicBlockService = getMagicBlockService();
 
   try {
+    const normalizedSecretKey = normalizeSecretKeyInput(senderPrivateKey);
+
     // 1. Execute private transfer via MagicBlock execution layer
     console.log(`[Subscription] Processing optimized payment for ${plan.name}...`);
 
     const transferResult = await magicBlockService.processAndRoutePrivatePayment(
-      senderPrivateKey,
+      normalizedSecretKey,
       merchantWalletAddress,
       plan.priceUsdc,
       {
@@ -54,7 +56,7 @@ export async function processPrivateSubscriptionPayment({
     console.log(`[Subscription] Transfer executed: ${transferResult.transactionSignature}`);
 
     // 2. Get sender public key for reference
-    const senderKeypair = Keypair.fromSecretKey(senderPrivateKey);
+    const senderKeypair = keypairFromSecretKeyInput(normalizedSecretKey);
     const senderAddress = senderKeypair.publicKey.toString();
 
     // 3. Store transaction record
@@ -301,14 +303,11 @@ export async function handleSubscriptionPaymentRequest(
       throw new Error("Subscription not found");
     }
 
-    // Decode private key
-    const privateKeyBytes = Buffer.from(userPrivateKey, "base64");
-
     // Process payment using private transfer
     const result = await processPrivateSubscriptionPayment({
       userId: subscription.user_id,
       subscriptionId,
-      senderPrivateKey: privateKeyBytes,
+      senderPrivateKey: userPrivateKey,
       merchantWalletAddress: process.env.MERCHANT_WALLET_ADDRESS!,
       plan: {
         id: subscription.plan_id,
