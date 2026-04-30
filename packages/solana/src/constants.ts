@@ -16,3 +16,7 @@ export const MEMO_PROGRAM_ID = new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqX
 // Payment Router Contract (Deployed on Solana Devnet)
 // Deployment Signature: 5QV3WoHgcumYgH5brQpBKBdNcfAoeZt2XCofdrJG8y65JxEX8rdhpzGhGeY1usT1eDefzdp4kmpfk1iv5smFfJHy
 export const PAYMENT_ROUTER_PROGRAM_ID = new PublicKey("Bs464Nm3DY6qNafJn5kmVHxh9R8nKRLpuXfdDrZQMd76");
+
+// Subscription Manager Contract (Deployed on Solana Devnet)
+// Upgrade Signature: TzkUpt83SxkEYky7Nz97kKoNaWExTrEW1FTjjksJhmGFhNQbHk2SW2xRH9gk71k84ZekF64cenFibWHJhxSSype
+export const SUBSCRIPTION_MANAGER_PROGRAM_ID = new PublicKey("Bs464Nm3DY6qNafJn5kmVHxh9R8nKRLpuXfdDrZQMd76");

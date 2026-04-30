@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("Subscr1pt1onMana9er1111111111111111111111111");
+declare_id!("Bs464Nm3DY6qNafJn5kmVHxh9R8nKRLpuXfdDrZQMd76");
 
 pub const BACKEND_AUTHORITY_BYTES: [u8; 32] = [42u8; 32];
 

@@ -145,6 +145,40 @@ See [contracts/payment-router/README.md](contracts/payment-router/README.md) for
 
 ---
 
+## 🔗 Subscription Manager Contract Deployment
+
+The StreamPay Subscription Manager contract is now live on Solana Devnet:
+
+### Contract Details
+- **Program ID**: `Bs464Nm3DY6qNafJn5kmVHxh9R8nKRLpuXfdDrZQMd76`
+- **Upgrade Signature**: `TzkUpt83SxkEYky7Nz97kKoNaWExTrEW1FTjjksJhmGFhNQbHk2SW2xRH9gk71k84ZekF64cenFibWHJhxSSype`
+- **Status**: ✅ Finalized
+- **Timestamp**: Apr 30, 2026 at 10:21:46 IST
+
+### Verify Transaction
+View the deployment on [Solana Explorer (Devnet)](https://explorer.solana.com/tx/TzkUpt83SxkEYky7Nz97kKoNaWExTrEW1FTjjksJhmGFhNQbHk2SW2xRH9gk71k84ZekF64cenFibWHJhxSSype?cluster=devnet)
+
+### What the Contract Does
+- **Creates Plans**: Merchants register subscription plans with amount and duration
+- **Activates Subscriptions**: Links payment records to active subscriptions
+- **Renews Subscriptions**: Extends subscription periods upon payment confirmation
+- **Tracks Status**: Monitors subscription lifecycle (Active, Paused, Expired, Cancelled)
+
+### Integration
+The contract is integrated into the TypeScript ecosystem via:
+```typescript
+import { 
+  createSubscriptionPlan, 
+  activateSubscription, 
+  renewSubscription,
+  SUBSCRIPTION_MANAGER_PROGRAM_ID 
+} from "@paystream/solana";
+```
+
+See [contracts/subscription-manager/README.md](contracts/subscription-manager/README.md) for detailed integration examples.
+
+---
+
 ## 🌟 Why This Matters
 
 Privacy is not just a feature; it is a **fundamental requirement** for the mass adoption of blockchain in global finance. StreamPay enables businesses to pay their employees, settle vendor invoices, and manage subscriptions with the same level of confidentiality they expect from traditional banking, but with the speed, efficiency, and transparency of the Solana network.
