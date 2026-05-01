@@ -42,28 +42,19 @@ We realized that privacy doesn't require complex zero-knowledge proofs for every
 
 ---
 
-## How It Works
+## How It Works: User Workflow
 
-We've engineered a high-orchestration pipeline that turns a complex multi-chain journey into a single, elegant interaction:
+We've engineered a high-orchestration pipeline that turns a complex multi-chain journey into a single, elegant interaction for the user:
 
-1.  **Agnostic Intake:** The user selects any asset on any supported chain (Ethereum, Base, Arbitrum, etc.).
-2.  **Intelligent Routing:** Our integration with **LI.FI** instantly discovers the most cost-effective and secure path across the ecosystem.
-3.  **Liquidity Optimization:** **Jupiter** handles the final mile on Solana, ensuring the swap into the merchant's target asset (SOL/USDC) is executed with minimal slippage.
-4.  **Shielded Settlement:** The payment is finalized on Solana, benefiting from sub-second finality and near-zero fees.
-5.  **Metadata Vaulting:** While the transaction settles on-chain, the rich data—invoice IDs, merchant notes, and recipient identities—is securely vaulted off-chain via our metadata layer.
-6.  **Unified Command:** The StreamPay Dashboard provides the merchant with a "Single Source of Truth," blending on-chain proof with off-chain privacy for perfect accounting.
-
----
-
-## The Problem
-Traditional blockchain payments are fully transparent. While this is great for public records, it is a dealbreaker for real-world financial operations.
-- **Payroll**: Disclosing employee salaries to the entire world is a security and privacy risk.
-- **B2B Subscriptions**: Business expenses and vendor relationships should not be public knowledge.
-- **Privacy as a Right**: Users should have the choice to keep their financial activity confidential.
-
-StreamPay solves this by making **Privacy the Default**, ensuring that your financial footprint is protected by state-of-the-art shielded transactions.
+1.  **Connect & Select:** The user connects their wallet (e.g., Phantom, Metamask) and selects any asset on any supported chain (Ethereum, Base, Solana, etc.).
+2.  **Intelligent Discovery:** Our integration with **LI.FI** instantly discovers the most cost-effective and secure path across the ecosystem for the specific payment amount.
+3.  **One-Click Authorization:** The user signs a single transaction. StreamPay handles the bridge, the swap via **Jupiter**, and the final payment settlement automatically.
+4.  **Shielded Settlement:** The payment is finalized on Solana. To any observer, it's just another fast transaction; the sensitive details are shielded from the public ledger.
+5.  **Metadata Vaulting:** While the transaction settles, the rich data—invoice IDs and purpose—is securely vaulted off-chain, ensuring private accounting.
+6.  **Real-Time Confirmation:** The merchant and user both receive instant confirmation. The merchant dashboard updates with the full "Single Source of Truth."
 
 ---
+
 
 ## Features
 
@@ -77,37 +68,47 @@ StreamPay solves this by making **Privacy the Default**, ensuring that your fina
 
 ## Architecture
 
-StreamPay is built on a modular architecture that prioritizes cross-chain flexibility and off-chain privacy. Our system orchestrates multiple protocols into a single, unified experience for both the payer and the merchant.
+StreamPay is engineered as a high-fidelity payment orchestration ecosystem. Our architecture is designed to handle the entire lifecycle of a transaction—from multi-chain intake and liquidity routing to shielded settlement and automated merchant reporting.
 
 ```mermaid
 graph TD
-    A[User / Payer] --> B[Next.js Frontend]
-    B --> C{Orchestration Layer}
+    User([User / Payer]) --> WebApp[Next.js Frontend]
+    Developer([External Developer]) --> SDK[StreamPay SDK / API]
     
-    subgraph "Execution & Routing"
-    C --> D[LI.FI - Bridge & Route Discovery]
-    D --> E[Jupiter - Atomic Swap to SOL/USDC]
+    subgraph "Intake & Routing"
+    WebApp & SDK --> Orch{Orchestration Engine}
+    Orch --> LIFI[LI.FI Bridge & Swap]
+    LIFI --> Jup[Jupiter Liquidity Aggregator]
     end
     
-    subgraph "Settlement Layer (Solana)"
-    E --> F[Payment Router Program]
-    F --> G[Subscription Manager Program]
+    subgraph "Execution Layer (Solana)"
+    Jup --> Router[Payment Router Program]
+    Router --> SubMgr[Subscription Manager Program]
+    Router --> RPC[RPC Fast Infrastructure]
     end
     
-    subgraph "Privacy & Data"
-    F --> H[Cloak Privacy Engine]
-    H --> I[(Off-Chain Metadata Vault)]
+    subgraph "Privacy & Persistence"
+    Router --> Cloak[Cloak SDK - Shielded TX]
+    Cloak --> Vault[(Secure Metadata Vault)]
+    Vault --> Keys[Viewing Keys / Selective Audit]
     end
     
-    I --> J[Merchant Dashboard]
-    J --> K[Analytics & Management]
+    subgraph "Merchant Ecosystem"
+    Vault --> Dash[Merchant Dashboard]
+    Dash --> Dune[Dune Analytics Dashboards]
+    Router -.-> Dodo[Dodo Payment Fallback]
+    Vault --> Webhooks[Webhook Engine]
+    Webhooks --> ExtSrv[External Merchant Services]
+    end
 ```
 
-### Core Components
-*   **The Frontend (Next.js):** A sleek, high-performance interface that abstracts the complexities of wallet connection and multi-chain selection.
-*   **The Orchestration Layer:** The brain of the operation. It communicates with **LI.FI** for cross-chain liquidity and **Jupiter** for ensuring the merchant always receives the correct settled asset on Solana.
-*   **On-Chain Settlement (Solana):** Our custom programs act as the source of truth for payment status and subscription cycles, benefiting from Solana's sub-second finality.
-*   **Metadata Vaulting:** By storing sensitive "context" data off-chain and only settling the "execution" on-chain, we maintain enterprise-grade privacy without sacrificing transparency for the merchant.
+### Technical Component Breakdown
+
+*   **Intake & Orchestration:** A unified entry point for both our native web app and third-party integrations via the **StreamPay SDK**. It leverages **LI.FI** for intelligent route discovery and **Jupiter** for atomic, zero-slippage swaps into the settlement currency.
+*   **On-Chain Execution (Solana):** Our dual-program architecture—**Payment Router** and **Subscription Manager**—manages the complex state of recurring billing and one-time payments. All interactions are routed through **RPC Fast** to guarantee enterprise-grade performance and sub-second finality.
+*   **The Privacy Engine:** Powered by the **Cloak SDK**, this layer executes shielded transactions that decouple the public ledger from sensitive payment details. We support **Selective Auditability** through viewing keys, allowing merchants to remain compliant while keeping their data private.
+*   **Persistence & Persistence:** The **Metadata Vault** is our secure off-chain layer that bridges the gap between raw blockchain hashes and human-readable business data. 
+*   **The Merchant Ecosystem:** A full-stack suite including a **Next.js Console**, **Dune Analytics** for aggregate insights, and a robust **Webhook Engine** that triggers external merchant services (ERP, CRM, etc.) upon payment confirmation.
 
 ---
 
