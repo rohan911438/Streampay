@@ -50,60 +50,33 @@ export async function POST(req: NextRequest) {
       try {
         signature = await connection.sendRawTransaction(
           transaction.serialize(),
-          { skipPreflight: true }
+          { 
+            skipPreflight: true,
+            maxRetries: 3 
+          }
         );
       } catch (sendError: any) {
         if (sendError.message && sendError.message.includes('already been processed')) {
-          console.log("[PaymentSubmit] Transaction already processed, proceeding with confirmation check");
-          const bs58 = require('bs58');
-          const encodeFn = bs58.default ? bs58.default.encode : bs58.encode;
-          signature = encodeFn(transaction.signatures[0].signature);
+          console.log("[PaymentSubmit] Transaction already processed, fetching signature from transaction data");
+          // Extract signature from the transaction if already sent
+          const bs58 = (await import('bs58')).default;
+          signature = bs58.encode(transaction.signatures[0].signature!);
         } else {
           throw sendError;
         }
       }
 
-      console.log(`[PaymentSubmit] Transaction sent with signature: ${signature}`);
+      console.log(`[PaymentSubmit] Transaction sent successfully: ${signature}`);
 
-      // Wait for initial confirmation (up to 30 seconds)
-      try {
-        const confirmation = await connection.confirmTransaction(signature, "confirmed");
-        console.log(`[PaymentSubmit] Transaction confirmed:`, confirmation);
-
-        if (confirmation.value.err) {
-          return NextResponse.json(
-            {
-              success: false,
-              error: "Transaction failed on-chain",
-              signature: signature,
-              paymentId: paymentId,
-              details: confirmation.value.err.toString(),
-            },
-            { status: 402 }
-          );
-        }
-
-        return NextResponse.json({
-          success: true,
-          signature: signature,
-          paymentId: paymentId,
-          confirmed: true,
-          message: "Transaction successfully signed and submitted to the network",
-        });
-      } catch (confirmError) {
-        // Transaction was sent but confirmation timed out
-        // This might be okay - the transaction could still be pending
-        console.warn(`[PaymentSubmit] Confirmation timeout:`, confirmError);
-
-        return NextResponse.json({
-          success: true,
-          signature: signature,
-          paymentId: paymentId,
-          confirmed: false,
-          message:
-            "Transaction sent but confirmation is pending. Check the signature in the Solana explorer.",
-        });
-      }
+      // Return immediately to avoid Vercel serverless timeout (10-15s).
+      // The frontend is already configured to poll for confirmation via /api/payment/status.
+      return NextResponse.json({
+        success: true,
+        signature: signature,
+        paymentId: paymentId,
+        confirmed: false, // Frontend will poll for true
+        message: "Transaction submitted to network. Polling for confirmation...",
+      });
     } catch (txError) {
       console.error("[PaymentSubmit] Transaction error:", txError);
       return NextResponse.json(
