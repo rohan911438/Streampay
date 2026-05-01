@@ -169,135 +169,76 @@ graph TD
 ---
 
 
-All transactions generated through our **Cloak** and **MagicBlock** execution layers are routed through RPC Fast to guarantee the best possible performance and delivery success rate.
+## Tech Stack
+
+StreamPay is built using a modern, high-performance stack designed for the next generation of financial applications.
+
+*   **Frontend:** Next.js, Tailwind CSS
+*   **Blockchain Logic:** Solana Web3.js, Wallet Adapter (Phantom)
+*   **Infrastructure:** **RPC Fast** (Primary Node Provider)
+*   **Cross-Chain Routing:** **LI.FI API**
+*   **Liquidity & Swaps:** **Jupiter API**
+*   **Backend:** Node.js (API Routes)
+*   **Data Persistence:** PostgreSQL (Secure Metadata Storage)
+*   **Privacy Layer:** **Cloak SDK** & **MagicBlock** concepts
 
 ---
 
-## Getting Started
+## Live Demo
 
-### 1) Prerequisites
-- Node.js 18+ 
-- A Solana wallet (Phantom recommended)
-- A local Postgres database
+**🌐 [Launch StreamPay Web App](https://streampay-web.vercel.app)**
 
-### 2) Installation
-```bash
-# Install dependencies
-npm install --legacy-peer-deps
-
-# Apply database schema
-psql "$DATABASE_URL" -f db/002_payments_table.sql
-```
-
-### 3) Environment Setup
-Create a `.env` file in the root:
-```env
-# Solana Configuration
-SOLANA_RPC_URL=your_rpc_fast_url
-NEXT_PUBLIC_SOLANA_RPC_URL=your_rpc_fast_url
-
-# Cloak Configuration
-CLOAK_PRIVATE_PAYMENT_SIGNER_KEY=your_cloak_signer_key
-
-# Dodo Fallback (Optional)
-DODO_API_KEY=your_dodo_key
-DODO_WEBHOOK_SECRET=your_webhook_secret
-
-# Database
-DATABASE_URL=postgres://user:pass@localhost:5432/streampay
-```
-
-### 4) Run the Platform
-```bash
-# Start the development server
-npm run dev
-
-# (Optional) Start ngrok for webhook testing
-ngrok http 3000
-```
+### How to use:
+1.  **Connect Wallet:** Link your Phantom or Metamask wallet.
+2.  **Private Pay:** Select a plan and click "Private Pay" to initiate the shielded workflow.
+3.  **Verify:** Compare the generic transfer hash on the Solana Explorer with the rich, itemized data available in your StreamPay Merchant Dashboard.
 
 ---
 
-## Demo Flow
+## Demo Flow: The Privacy Difference
 
-1. **Connect**: Open the application and connect your Solana wallet.
-2. **Select Plan**: Browse available subscription plans on the demo page (`/pay/demo`).
-3. **Private Checkout**: Notice that **Private Payment (Cloak)** is pre-selected as the recommended method.
-4. **Pay**: Execute the transaction. You will see a "Securing Privacy..." loading state.
-5. **Success**: Receive a confirmation message explaining that your payment was successful and that your details are hidden on-chain.
-6. **Verify**: Check the Merchant Dashboard to see your new private subscription active and tagged with a 🔒 badge.
+Our demo illustrates the stark contrast between public exposure and professional privacy:
 
----
-
-## Payment Router Contract Deployment
-
-The StreamPay Payment Router contract is now live on Solana Devnet:
-
-### Contract Details
-- **Program ID**: `Bs464Nm3DY6qNafJn5kmVHxh9R8nKRLpuXfdDrZQMd76`
-- **Deployment Signature**: `5QV3WoHgcumYgH5brQpBKBdNcfAoeZt2XCofdrJG8y65JxEX8rdhpzGhGeY1usT1eDefzdp4kmpfk1iv5smFfJHy`
-- **Status**: ✅ Finalized
-- **Timestamp**: Apr 30, 2026 at 10:15:33 IST
-
-### Verify Transaction
-View the deployment on [Solana Explorer (Devnet)](https://explorer.solana.com/tx/5QV3WoHgcumYgH5brQpBKBdNcfAoeZt2XCofdrJG8y65JxEX8rdhpzGhGeY1usT1eDefzdp4kmpfk1iv5smFfJHy?cluster=devnet)
-
-### What the Contract Does
-- **Records Payment Intents**: Creates `PaymentRecord` accounts with initial `Pending` status
-- **Confirms Execution**: Updates records to `Completed` with execution reference from Cloak/MagicBlock
-- **Flexible Authorization**: Supports user, merchant, or backend authority confirmation
-- **Privacy-Aware**: Designed to work seamlessly with Cloak private transfers
-
-### Integration
-The contract is integrated into the TypeScript ecosystem via:
-```typescript
-import { 
-  createPaymentRecord, 
-  confirmPaymentRecord,
-  PAYMENT_ROUTER_PROGRAM_ID 
-} from "@paystream/solana";
-```
-
-See [contracts/payment-router/README.md](contracts/payment-router/README.md) for detailed integration examples.
+*   **On-Chain (Public):** Observers only see a standard token transfer and a transaction hash. No recipient identity, no invoice details, no business context.
+*   **Off-Chain (Private):** The full, itemized transaction details are securely stored in our metadata layer.
+*   **Merchant Dashboard:** The merchant sees the complete "Single Source of Truth"—who paid, for what, and when—without leaking that data to the public ledger.
 
 ---
 
-## Subscription Manager Contract Deployment
+## Monetization
 
-The StreamPay Subscription Manager contract is now live on Solana Devnet:
+StreamPay is designed as a sustainable protocol with multiple revenue streams:
 
-### Contract Details
-- **Program ID**: `Bs464Nm3DY6qNafJn5kmVHxh9R8nKRLpuXfdDrZQMd76`
-- **Upgrade Signature**: `TzkUpt83SxkEYky7Nz97kKoNaWExTrEW1FTjjksJhmGFhNQbHk2SW2xRH9gk71k84ZekF64cenFibWHJhxSSype`
-- **Status**: ✅ Finalized
-- **Timestamp**: Apr 30, 2026 at 10:21:46 IST
-
-### Verify Transaction
-View the deployment on [Solana Explorer (Devnet)](https://explorer.solana.com/tx/TzkUpt83SxkEYky7Nz97kKoNaWExTrEW1FTjjksJhmGFhNQbHk2SW2xRH9gk71k84ZekF64cenFibWHJhxSSype?cluster=devnet)
-
-### What the Contract Does
-- **Creates Plans**: Merchants register subscription plans with amount and duration
-- **Activates Subscriptions**: Links payment records to active subscriptions
-- **Renews Subscriptions**: Extends subscription periods upon payment confirmation
-- **Tracks Status**: Monitors subscription lifecycle (Active, Paused, Expired, Cancelled)
-
-### Integration
-The contract is integrated into the TypeScript ecosystem via:
-```typescript
-import { 
-  createSubscriptionPlan, 
-  activateSubscription, 
-  renewSubscription,
-  SUBSCRIPTION_MANAGER_PROGRAM_ID 
-} from "@paystream/solana";
-```
-
-See [contracts/subscription-manager/README.md](contracts/subscription-manager/README.md) for detailed integration examples.
+*   **Transaction Fees:** A small percentage fee on every cross-chain or shielded payment.
+*   **SaaS Dashboard:** Tiered subscription models for advanced merchant analytics and CRM tools.
+*   **Developer API:** Usage-based pricing for high-volume enterprise integrations via our SDK.
+*   **Premium Privacy:** Enhanced shielding features and selective auditability tools for regulated industries.
 
 ---
 
-## Why This Matters
+## Future Scope
 
-Privacy is not just a feature; it is a **fundamental requirement** for the mass adoption of blockchain in global finance. StreamPay enables businesses to pay their employees, settle vendor invoices, and manage subscriptions with the same level of confidentiality they expect from traditional banking, but with the speed, efficiency, and transparency of the Solana network.
+We are just getting started. Our roadmap focuses on hardening privacy and expanding cross-chain utility:
 
-**We are moving blockchain payments from public novelty to professional financial standard.**
+*   **Cryptographic Privacy:** Transitioning from metadata abstraction to full cryptographic shielding using ZK-proofs or shielded transaction pools.
+*   **Direct Cross-Chain Execution:** Moving beyond simulation to native, protocol-level cross-chain contract calls.
+*   **Enterprise ERP Integrations:** Seamless plugins for SAP, Oracle, and QuickBooks.
+*   **Compliance Suite:** Advanced viewing key management for automated tax reporting and regulatory compliance.
+
+---
+
+## Contract Deployments (Devnet)
+
+*   **Payment Router:** `Bs464Nm3DY6qNafJn5kmVHxh9R8nKRLpuXfdDrZQMd76`
+*   **Subscription Manager:** `Bs464Nm3DY6qNafJn5kmVHxh9R8nKRLpuXfdDrZQMd76`
+*   **Status:** ✅ Finalized & Integrated
+
+---
+
+## Builder
+
+**Rohan Kumar**
+*   **GitHub:** [rohan911438](https://github.com/rohan911438)
+*   **Team:** **BROTHERHOOD**
+
+---
