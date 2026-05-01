@@ -82,11 +82,43 @@ graph LR
 
 ## Features
 
-- **Private Payments (Cloak)**: Shielded transfers where amount and recipient are hidden from public ledgers.
-- **Seamless Subscriptions**: Automated recurring payment logic for SaaS, services, and payroll.
-- **Real-time Analytics (Dune)**: Deep insights into revenue and user behavior powered by Dune Analytics.
-- **Reliable Infrastructure (RPC Fast)**: Low-latency, high-performance access to the Solana network.
-- **Dodo Fallback**: A reliable public payment path for standard transactions when privacy is not a priority.
+*   **🔐 Privacy Abstraction Layer:** Our core innovation that decouples sensitive metadata from public on-chain execution.
+*   **🌉 Cross-Chain Payments:** Seamlessly accept assets from any EVM or non-EVM chain via **LI.FI** routing.
+*   **⚡ Fast Swaps via Jupiter:** Instant, low-slippage conversion into your target settlement asset.
+*   **💼 Merchant Dashboard:** A professional-grade console for tracking revenue, managing plans, and monitoring private subscriptions.
+*   **🔗 Wallet-Based Payments:** Full support for industry-standard wallets like **Phantom** and Metamask.
+*   **📡 Webhook Support:** Real-time event notifications to sync your backend with every private payment.
+*   **🧾 Subscription Tracking:** Advanced logic for managing recurring billing cycles without exposing customer data.
+*   **🧠 Developer SDK Integration:** A developer-first approach with a robust SDK for integrating StreamPay into any application.
+
+---
+
+## Hackathon Tracks Implemented
+
+StreamPay is a multi-disciplinary powerhouse, intentionally designed to span the most critical tracks in the Solana ecosystem. We have applied for **7 strategic tracks**, each representing a core pillar of our infrastructure.
+
+### **1. Cloak: Privacy-Focused Payment Abstraction**
+Cloak is the heart of our privacy promise. By utilizing Cloak's abstraction layer, we ensure that while the settlement is verified on the blockchain, the *intent* and *identity* behind the payment remain shielded. This allows businesses to operate with the same confidentiality they expect from traditional banking, but with the sovereign power of Solana.
+
+### **2. RPC Fast: High-Octane Transaction Execution**
+Speed is a feature, not an afterthought. We utilize **RPC Fast** as our primary gateway to the Solana network. This ensures that our cross-chain swaps and shielded settlements are broadcast and confirmed with sub-second latency. Without RPC Fast's enterprise-grade reliability, the seamless "One-Click" experience of StreamPay wouldn't be possible.
+
+### **3. MagicBlock: Private Execution Layer Concept**
+We've integrated **MagicBlock** concepts to handle complex execution states in a private manner. This allows us to manage subscription logic and payment verification without leaking state information to public explorers, further hardening the privacy of our merchant-customer relationships.
+
+### **4. Dune: On-Chain Data and Analytics**
+Data-driven decisions shouldn't require compromising privacy. We leverage **Dune** to provide aggregate, non-sensitive insights into the health of the StreamPay ecosystem. This gives merchants the macro-level data they need—revenue trends, active user counts, and growth metrics—while our metadata layer protects the micro-level privacy.
+
+### **5. LI.FI: The Cross-Chain Routing Backbone**
+**LI.FI** is the bridge that brings the entire multi-chain world to StreamPay. By integrating their route discovery and bridging infrastructure, we've made it possible for a user on Ethereum or Base to pay a StreamPay merchant on Solana as easily as if they were on the same chain. It is the foundation of our "Pay with Anything" philosophy.
+
+### **6. Jupiter: Swap Aggregation & Liquidity**
+The final mile of every StreamPay transaction is handled by **Jupiter**. Their swap aggregation ensures that regardless of what asset the user sends, the merchant receives their settled funds with the best possible price and minimal slippage. Jupiter is the engine that makes our unified Solana settlement both viable and highly efficient.
+
+### **7. Dodo Payments: Public Fallback & Global Reach**
+For users and regions where traditional blockchain transparency is required or preferred, we've integrated **Dodo Payments**. This provides a robust public fallback path, ensuring that StreamPay remains a globally accessible platform that can accommodate any regulatory or personal preference without friction.
+
+---
 
 ---
 
@@ -136,32 +168,6 @@ graph TD
 
 ---
 
-## Core Integration: Cloak Privacy Layer
-
-Cloak is the heart of StreamPay. It is responsible for executing **shielded transactions** that break the link between the sender and receiver on the public ledger.
-
-- **How it Works**: When a user pays, the Cloak SDK generates a private transfer. On-chain, the transaction details are obscured, making it impossible for outside observers to determine the transaction's value or destination.
-- **Selective Auditability**: Privacy doesn't mean lack of accountability. StreamPay supports **viewing keys**, allowing users to selectively disclose transaction details to auditors or tax authorities without making them public to everyone.
-- **Centralized Tracking**: Every private transaction is recorded in our database with a unique reference, allowing for reliable internal tracking and subscription management without compromising on-chain privacy.
-
----
-
-## Analytics & Fallbacks: Dune + Dodo
-
-While Cloak provides the privacy, we use best-in-class tools to power the rest of the ecosystem:
-
-- **Dune Analytics**: We leverage Dune to provide real-time dashboards of non-sensitive metrics, such as aggregate revenue trends and active subscription counts, ensuring merchants have the data they need to grow.
-- **Dodo Payments**: We maintain Dodo as a secondary, public fallback option. This allows users who prefer traditional blockchain transparency—or those in jurisdictions requiring standard transfers—to still participate in the StreamPay ecosystem.
-
----
-
-## Infrastructure: RPC Fast
-
-To ensure that StreamPay remains "seamless and fast," we utilize **RPC Fast** as our primary Solana infrastructure provider. This ensures that every blockchain interaction—from wallet balance checks to complex shielded transaction submissions—benefits from enterprise-grade performance.
-
-- **Low Latency**: Near-instant transaction broadcasting and confirmation, crucial for a smooth user experience during checkout.
-- **High Reliability**: RPC Fast provides consistent uptime and high rate limits, ensuring that automated subscription renewals and one-time payments never fail due to public network congestion.
-- **Scalability**: Designed to handle high-frequency transaction loads, supporting our vision for professional-grade financial operations.
 
 All transactions generated through our **Cloak** and **MagicBlock** execution layers are routed through RPC Fast to guarantee the best possible performance and delivery success rate.
 
