@@ -225,7 +225,7 @@ export async function GET(
   if (!apiKey) {
     // FALLBACK TO REAL SOLANA DATA
     try {
-      const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL || process.env.NEXT_PUBLIC_RPC_ENDPOINT || "https://api.mainnet-beta.solana.com";
+      const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL || process.env.NEXT_PUBLIC_RPC_ENDPOINT || "https://api.devnet.solana.com";
       const connection = new Connection(rpcUrl, "confirmed");
       const pubkey = new PublicKey(walletAddress);
       
@@ -309,8 +309,7 @@ export async function GET(
       const rpcUrls = [
         process.env.NEXT_PUBLIC_RPC_URL,
         process.env.NEXT_PUBLIC_RPC_ENDPOINT,
-        "https://api.mainnet-beta.solana.com",
-        "https://api.devnet.solana.com"
+        "https://api.devnet.solana.com",
       ].filter(Boolean);
 
       let fetchedSignatures: any[] = [];

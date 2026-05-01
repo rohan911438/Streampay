@@ -26,16 +26,6 @@
       "static/chunks/main-app.js",
       "static/chunks/app/not-found.js"
     ],
-    "/(subscriber)/pay/success/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(subscriber)/pay/success/page.js"
-    ],
-    "/(subscriber)/layout": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(subscriber)/layout.js"
-    ],
     "/(merchant)/dashboard/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",

@@ -33,7 +33,7 @@ export async function GET() {
 
   // 2. Check RPC Fast Connectivity
   try {
-    const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL || "https://api.mainnet-beta.solana.com";
+    const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL || "https://api.devnet.solana.com";
     results.rpc.endpoint = rpcUrl.split('?')[0];
     const connection = new Connection(rpcUrl, "confirmed");
     const { blockhash } = await connection.getLatestBlockhash();
