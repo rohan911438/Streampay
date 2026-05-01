@@ -24,9 +24,33 @@
   <img src="https://img.shields.io/badge/Status-Active-brightgreen?style=for-the-badge" alt="Status" />
 </p>
 
+## 🚀 Overview
+
+StreamPay is the bridge between the freedom of crypto and the privacy of traditional finance. We provide the infrastructure for businesses to accept payments from any chain while maintaining the confidentiality and speed of a private network.
+
+### The Problem
+*   **Crypto is too public:** Traditional blockchain transactions expose sensitive business data, payroll, and vendor details to the world.
+*   **Cross-chain is a nightmare:** Moving assets between chains is slow, expensive, and technically complex for the average user.
+*   **Infrastructure gap:** Merchants lack professional-grade tools to manage private, recurring, and cross-chain revenue in one place.
+
+### The Solution
+StreamPay abstracts the complexity of the multi-chain world. 
+*   **Metadata Abstraction:** We enable "private-like" payments by decoupling transaction execution from public data, storing sensitive details in a secure off-chain layer.
+*   **Unified Settlement:** Users can pay with any asset from any chain, while merchants receive settled funds on Solana—the fastest, most efficient network for global commerce.
+*   **Merchant-First Design:** A powerful dashboard that provides full visibility without compromising on-chain privacy.
+
 ---
 
-StreamPay is a privacy-first payment platform built on Solana that enables businesses and individuals to execute recurring payments without exposing sensitive financial data. By integrating **Cloak** as our primary transaction layer, we’ve built a solution where payment amounts and recipients remain shielded on-chain, while maintaining optional auditability for compliance.
+## 🧠 How It Works
+
+StreamPay orchestrates a seamless multi-step process to ensure privacy and efficiency:
+
+1.  **Chain Selection:** The user chooses their preferred payment source (Ethereum, Base, etc.).
+2.  **Route Discovery:** **LI.FI** identifies the most efficient bridge and swap path for the selected asset.
+3.  **Optimal Swap:** **Jupiter** optimizes the final conversion into SOL or USDC on Solana.
+4.  **Private Execution:** The payment is executed on the Solana network using our custom router.
+5.  **Metadata Shielding:** Sensitive payment details (recipient, purpose, etc.) are stored in a secure off-chain vault, keeping the public ledger clean.
+6.  **Merchant Insight:** The merchant receives real-time updates and full transaction details via the StreamPay Dashboard.
 
 ---
 
