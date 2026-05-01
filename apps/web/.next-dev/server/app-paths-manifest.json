@@ -1,7 +1,10 @@
 {
-  "/api/svm/transactions/[walletAddress]/route": "app/api/svm/transactions/[walletAddress]/route.js",
-  "/api/v1/merchants/me/route": "app/api/v1/merchants/me/route.js",
+  "/api/payment/prepare/route": "app/api/payment/prepare/route.js",
+  "/api/payment/submit-signed/route": "app/api/payment/submit-signed/route.js",
+  "/api/payment/confirm/route": "app/api/payment/confirm/route.js",
+  "/(merchant)/dashboard/page": "app/(merchant)/dashboard/page.js",
+  "/(merchant)/plans/page": "app/(merchant)/plans/page.js",
   "/(merchant)/analytics/page": "app/(merchant)/analytics/page.js",
   "/(merchant)/developer/page": "app/(merchant)/developer/page.js",
-  "/api/svm/balances/[walletAddress]/route": "app/api/svm/balances/[walletAddress]/route.js"
+  "/(subscriber)/pay/[slug]/page": "app/(subscriber)/pay/[slug]/page.js"
 }

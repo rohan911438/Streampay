@@ -81,13 +81,19 @@ export async function POST(req: NextRequest) {
     const transaction = new Transaction();
 
     // Add instruction based on transfer type
+    // Convert USD amount to SOL (assuming $150 per SOL for demo purposes)
+    // This ensures that a $10 payment doesn't try to send 10 SOL
+    const solPrice = 150;
+    const solAmount = Number(amount) / solPrice;
+    const lamports = Math.max(Math.floor(solAmount * 1_000_000_000), 1000);
+
+    // Add instruction based on transfer type
     if (type === "private") {
       // 1. REQUIRED: Actual value transfer instruction (moving the value)
       const transferInstruction = SystemProgram.transfer({
         fromPubkey: recipientPubkey,
         toPubkey: treasuryWallet,
-        lamports: Math.floor(Number(amount) * 1_000_000_000), // SOL to Lamports (for SOL) 
-        // Note: If using USDC, this would be different. Standardizing on SOL for this endpoint.
+        lamports: lamports,
       });
       transaction.add(transferInstruction);
 
@@ -112,10 +118,11 @@ export async function POST(req: NextRequest) {
       const instruction = SystemProgram.transfer({
         fromPubkey: recipientPubkey,
         toPubkey: treasuryWallet,
-        lamports: Math.floor(Number(amount) * 1_000_000_000),
+        lamports: lamports,
       });
       transaction.add(instruction);
     }
+
 
     // Set the fee payer (the user's wallet)
     transaction.feePayer = recipientPubkey;

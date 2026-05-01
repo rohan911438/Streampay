@@ -10,6 +10,28 @@
       "dodoProductId": null,
       "active": true,
       "createdAt": "2026-04-27T04:11:59.343Z"
+    },
+    {
+      "id": "d96e2ba4-836f-411e-920a-ff290a0ef936",
+      "name": "Netflix",
+      "priceUsdc": 10,
+      "billingInterval": "monthly",
+      "description": "Movies",
+      "dodoProductId": null,
+      "active": true,
+      "merchantId": "00000000-0000-0000-0000-000000000000",
+      "createdAt": "2026-05-01T15:08:58.358Z"
+    },
+    {
+      "id": "6b0f4d58-0a99-4c9c-bd54-6b62846f49e6",
+      "name": "Hotstar",
+      "priceUsdc": 10,
+      "billingInterval": "monthly",
+      "description": "Web Series Streaming",
+      "dodoProductId": null,
+      "active": true,
+      "merchantId": "00000000-0000-0000-0000-000000000000",
+      "createdAt": "2026-05-01T15:12:53.391Z"
     }
   ],
   "users": [
@@ -381,6 +403,51 @@
       "transactionReference": "0xde2879c4beab35a0",
       "id": "a7445923-6d79-4f4a-9926-0ff463e32d60",
       "paidAt": "2026-05-01T06:44:10.095Z"
+    },
+    {
+      "merchantId": "00000000-0000-0000-0000-000000000000",
+      "walletAddress": "5L9gFTDpsVvWWYyFpL6thhxpoY7iFUV5UY6Jt8S5vAzc",
+      "amountUsdc": 10,
+      "planId": "5a9b4523-36ca-40bd-9a3f-a4bdc0530e1a",
+      "status": "success",
+      "type": "private",
+      "provider": "cloak",
+      "executionLayer": "direct",
+      "userId": null,
+      "subscriptionId": null,
+      "transactionReference": "0x56e083bc9a0eff1b",
+      "id": "a75427ab-db13-458f-bf3c-4c8606ef03ef",
+      "paidAt": "2026-05-01T15:06:38.404Z"
+    },
+    {
+      "merchantId": "00000000-0000-0000-0000-000000000000",
+      "walletAddress": "5L9gFTDpsVvWWYyFpL6thhxpoY7iFUV5UY6Jt8S5vAzc",
+      "amountUsdc": 10,
+      "planId": "5a9b4523-36ca-40bd-9a3f-a4bdc0530e1a",
+      "status": "pending",
+      "type": "private",
+      "provider": "cloak",
+      "executionLayer": "direct",
+      "userId": null,
+      "subscriptionId": null,
+      "transactionReference": "0x76045bf3b13f265d",
+      "id": "1ffe7484-9df5-434f-ab9b-7eb42d58c929",
+      "paidAt": "2026-05-01T15:14:22.450Z"
+    },
+    {
+      "merchantId": "00000000-0000-0000-0000-000000000000",
+      "walletAddress": "5L9gFTDpsVvWWYyFpL6thhxpoY7iFUV5UY6Jt8S5vAzc",
+      "amountUsdc": 10,
+      "planId": "5a9b4523-36ca-40bd-9a3f-a4bdc0530e1a",
+      "status": "success",
+      "type": "private",
+      "provider": "cloak",
+      "executionLayer": "direct",
+      "userId": null,
+      "subscriptionId": null,
+      "transactionReference": "0x8ca978ce5a1e2cd2",
+      "id": "40158727-d124-493c-8851-39ff03b4d457",
+      "paidAt": "2026-05-01T15:18:47.152Z"
     }
   ],
   "checkoutSessions": [

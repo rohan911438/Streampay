@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
               error: "Transaction failed on-chain",
               signature: signature,
               paymentId: paymentId,
-              details: confirmation.value.err.toString(),
+              details: JSON.stringify(confirmation.value.err),
             },
             { status: 402 }
           );
