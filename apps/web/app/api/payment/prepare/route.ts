@@ -51,11 +51,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Get the receiver wallet (for this demo, using a hardcoded treasury)
-    // In production, this should be the merchant's wallet
-    const treasuryWallet = new PublicKey(
-      process.env.NEXT_PUBLIC_TREASURY_WALLET || "11111111111111111111111111111112"
-    );
+    // Get the receiver wallet (TREASURY_WALLET must be set in .env.local)
+    const treasuryWalletAddress = process.env.TREASURY_WALLET || process.env.NEXT_PUBLIC_TREASURY_WALLET;
+    if (!treasuryWalletAddress) {
+      return NextResponse.json(
+        { error: "TREASURY_WALLET is not configured on the server." },
+        { status: 500 }
+      );
+    }
+    const treasuryWallet = new PublicKey(treasuryWalletAddress);
 
     // Initialize Solana connection
     const rpcUrl =

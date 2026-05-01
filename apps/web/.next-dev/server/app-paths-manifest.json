@@ -1,8 +1,7 @@
 {
-  "/api/plans/route": "app/api/plans/route.js",
   "/api/users/sync/route": "app/api/users/sync/route.js",
-  "/api/payment/prepare/route": "app/api/payment/prepare/route.js",
   "/api/payment/submit-signed/route": "app/api/payment/submit-signed/route.js",
+  "/api/payment/prepare/route": "app/api/payment/prepare/route.js",
   "/(merchant)/developer/page": "app/(merchant)/developer/page.js",
   "/(subscriber)/pay/[slug]/page": "app/(subscriber)/pay/[slug]/page.js",
   "/(merchant)/dashboard/page": "app/(merchant)/dashboard/page.js"
