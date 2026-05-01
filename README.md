@@ -168,6 +168,33 @@ graph TD
 
 ---
 
+## Contract Deployments (Devnet)
+
+### Payment Router
+The StreamPay Payment Router contract is live on Solana Devnet. It records payment intents and confirms execution via execution references from our privacy layers.
+- **Program ID**: `Bs464Nm3DY6qNafJn5kmVHxh9R8nKRLpuXfdDrZQMd76`
+- **Deployment Signature**: `5QV3WoHgcumYgH5brQpBKBdNcfAoeZt2XCofdrJG8y65JxEX8rdhpzGhGeY1usT1eDefzdp4kmpfk1iv5smFfJHy`
+- **Status**: ✅ Finalized
+- **Verification**: [View on Solana Explorer](https://explorer.solana.com/tx/5QV3WoHgcumYgH5brQpBKBdNcfAoeZt2XCofdrJG8y65JxEX8rdhpzGhGeY1usT1eDefzdp4kmpfk1iv5smFfJHy?cluster=devnet)
+
+**Core Functions:**
+- Records `PaymentRecord` accounts with `Pending` status.
+- Confirms execution and updates records to `Completed`.
+- Supports flexible authorization for user, merchant, or backend authorities.
+
+### Subscription Manager
+The Subscription Manager handles the lifecycle of recurring payments, from plan creation to renewal.
+- **Program ID**: `Bs464Nm3DY6qNafJn5kmVHxh9R8nKRLpuXfdDrZQMd76`
+- **Upgrade Signature**: `TzkUpt83SxkEYky7Nz97kKoNaWExTrEW1FTjjksJhmGFhNQbHk2SW2xRH9gk71k84ZekF64cenFibWHJhxSSype`
+- **Status**: ✅ Finalized
+- **Verification**: [View on Solana Explorer](https://explorer.solana.com/tx/TzkUpt83SxkEYky7Nz97kKoNaWExTrEW1FTjjksJhmGFhNQbHk2SW2xRH9gk71k84ZekF64cenFibWHJhxSSype?cluster=devnet)
+
+**Core Functions:**
+- Merchant registration of subscription plans (amount, duration).
+- Activation of user subscriptions linked to payment records.
+- Automatic status tracking (Active, Paused, Expired).
+
+---
 
 ## Tech Stack
 
@@ -227,13 +254,6 @@ We are just getting started. Our roadmap focuses on hardening privacy and expand
 
 ---
 
-## Contract Deployments (Devnet)
-
-*   **Payment Router:** `Bs464Nm3DY6qNafJn5kmVHxh9R8nKRLpuXfdDrZQMd76`
-*   **Subscription Manager:** `Bs464Nm3DY6qNafJn5kmVHxh9R8nKRLpuXfdDrZQMd76`
-*   **Status:** ✅ Finalized & Integrated
-
----
 
 ## Builder
 
