@@ -7,7 +7,6 @@ import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { WalletAdapterNetwork, WalletReadyState } from "@solana/wallet-adapter-base";
 import { PhantomWalletAdapter } from "@solana/wallet-adapter-phantom";
 import { SolflareWalletAdapter } from "@solana/wallet-adapter-solflare";
-import { BackpackWalletAdapter } from "@solana/wallet-adapter-backpack";
 import { clusterApiUrl } from "@solana/web3.js";
 import { CurrentUserProvider } from "@/components/current-user-provider";
 
@@ -69,7 +68,7 @@ function WalletConnectionGuard() {
 
 export function Providers({ children }: Readonly<{ children: ReactNode }>) {
   const wallets = useMemo(
-    () => [new PhantomWalletAdapter(), new SolflareWalletAdapter(), new BackpackWalletAdapter()],
+    () => [new PhantomWalletAdapter(), new SolflareWalletAdapter()],
     []
   );
 

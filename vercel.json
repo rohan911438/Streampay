@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "installCommand": "npm install",
+  "installCommand": "npm install --no-audit --prefer-offline",
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
   "framework": "nextjs",
