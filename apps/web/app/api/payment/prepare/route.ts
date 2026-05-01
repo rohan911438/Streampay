@@ -70,9 +70,16 @@ export async function POST(req: NextRequest) {
 
     // Add instruction based on transfer type
     if (type === "private") {
-      // Simulate MagicBlock/Cloak private execution pipeline instruction
-      // Instead of a direct public SystemProgram transfer, we use a Memo program 
-      // instruction to act as the shielded transaction payload for the wallet adapter to sign.
+      // 1. REQUIRED: Actual value transfer instruction (moving the value)
+      const transferInstruction = SystemProgram.transfer({
+        fromPubkey: recipientPubkey,
+        toPubkey: treasuryWallet,
+        lamports: Number(amount) * 1_000_000,
+      });
+      transaction.add(transferInstruction);
+
+      // 2. REQUIRED: Private execution pipeline instruction (Cloak/MagicBlock wrapper)
+      // This memo provides the routing metadata for the shielded execution
       const memoProgramId = new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
       const cloakPayload = JSON.stringify({
         protocol: "MagicBlock-v1",
