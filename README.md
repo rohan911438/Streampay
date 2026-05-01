@@ -336,3 +336,9 @@ We are just getting started. Our roadmap focuses on hardening privacy and expand
 *   **Team:** **BROTHERHOOD**
 
 ---
+
+## License
+
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+
+---
