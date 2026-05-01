@@ -75,6 +75,42 @@ StreamPay solves this by making **Privacy the Default**, ensuring that your fina
 
 ---
 
+## Architecture
+
+StreamPay is built on a modular architecture that prioritizes cross-chain flexibility and off-chain privacy. Our system orchestrates multiple protocols into a single, unified experience for both the payer and the merchant.
+
+```mermaid
+graph TD
+    A[User / Payer] --> B[Next.js Frontend]
+    B --> C{Orchestration Layer}
+    
+    subgraph "Execution & Routing"
+    C --> D[LI.FI - Bridge & Route Discovery]
+    D --> E[Jupiter - Atomic Swap to SOL/USDC]
+    end
+    
+    subgraph "Settlement Layer (Solana)"
+    E --> F[Payment Router Program]
+    F --> G[Subscription Manager Program]
+    end
+    
+    subgraph "Privacy & Data"
+    F --> H[Cloak Privacy Engine]
+    H --> I[(Off-Chain Metadata Vault)]
+    end
+    
+    I --> J[Merchant Dashboard]
+    J --> K[Analytics & Management]
+```
+
+### Core Components
+*   **The Frontend (Next.js):** A sleek, high-performance interface that abstracts the complexities of wallet connection and multi-chain selection.
+*   **The Orchestration Layer:** The brain of the operation. It communicates with **LI.FI** for cross-chain liquidity and **Jupiter** for ensuring the merchant always receives the correct settled asset on Solana.
+*   **On-Chain Settlement (Solana):** Our custom programs act as the source of truth for payment status and subscription cycles, benefiting from Solana's sub-second finality.
+*   **Metadata Vaulting:** By storing sensitive "context" data off-chain and only settling the "execution" on-chain, we maintain enterprise-grade privacy without sacrificing transparency for the merchant.
+
+---
+
 ## Core Integration: Cloak Privacy Layer
 
 Cloak is the heart of StreamPay. It is responsible for executing **shielded transactions** that break the link between the sender and receiver on the public ledger.
