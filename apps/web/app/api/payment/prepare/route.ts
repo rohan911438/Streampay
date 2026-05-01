@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Connection, PublicKey, Transaction, SystemProgram } from "@solana/web3.js";
+import { Connection, PublicKey, Transaction, TransactionInstruction, SystemProgram } from "@solana/web3.js";
 import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { jsonDb } from "@/lib/json-db";
 
@@ -70,13 +70,24 @@ export async function POST(req: NextRequest) {
 
     // Add instruction based on transfer type
     if (type === "private") {
-      // For private transfers, create a simple memo instruction
-      // The actual Cloak transfer would happen on the backend
-      const instruction = SystemProgram.transfer({
-        fromPubkey: recipientPubkey,
-        toPubkey: treasuryWallet,
-        lamports: Number(amount) * 1_000_000, // Convert USDC to lamports equivalent for demo
+      // Simulate MagicBlock/Cloak private execution pipeline instruction
+      // Instead of a direct public SystemProgram transfer, we use a Memo program 
+      // instruction to act as the shielded transaction payload for the wallet adapter to sign.
+      const memoProgramId = new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
+      const cloakPayload = JSON.stringify({
+        protocol: "MagicBlock-v1",
+        action: "private_pay",
+        amount_usdc: amount,
+        merchant: treasuryWallet.toBase58(),
+        routing: "shielded"
       });
+      
+      const instruction = new TransactionInstruction({
+        keys: [{ pubkey: recipientPubkey, isSigner: true, isWritable: true }],
+        programId: memoProgramId,
+        data: Buffer.from(cloakPayload, "utf-8"),
+      });
+      
       transaction.add(instruction);
     } else {
       // Standard transfer

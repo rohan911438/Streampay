@@ -30,6 +30,16 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/(merchant)/developer/page.js"
+    ],
+    "/(subscriber)/pay/[slug]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(subscriber)/pay/[slug]/page.js"
+    ],
+    "/(subscriber)/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(subscriber)/layout.js"
     ]
   }
 }
