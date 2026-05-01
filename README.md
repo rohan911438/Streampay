@@ -12,7 +12,7 @@
   <a href="https://streampay-web.vercel.app">🌐 Live App</a> •
   <a href="https://www.npmjs.com/package/streampay-sdk">📦 npm SDK</a> •
   <a href="#">🎥 Demo Video (Coming Soon)</a> •
-  <a href="#">📊 Pitch Deck (Coming Soon)</a>
+  <a href="https://drive.google.com/file/d/1Kq35RQpjjwlggH1Ex4szRgnrQtxLuJHE/view?usp=drivesdk">📊 Pitch Deck</a>
 </p>
 
 <p align="center">
