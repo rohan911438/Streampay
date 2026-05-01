@@ -83,7 +83,8 @@ export async function POST(req: Request) {
     });
 
     // For now, return a mock checkout URL (replace with real Dodo URL when API works)
-    const checkoutUrl = `http://localhost:3000/pay/success?session=${checkoutSession.checkoutSessionId}&test=true`;
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const checkoutUrl = `${appUrl}/pay/success?session=${checkoutSession.checkoutSessionId}&test=true`;
 
     return NextResponse.json(
       {

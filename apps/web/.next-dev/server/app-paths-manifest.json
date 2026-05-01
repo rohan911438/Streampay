@@ -1,6 +1,4 @@
 {
-  "/api/svm/balances/[walletAddress]/route": "app/api/svm/balances/[walletAddress]/route.js",
-  "/api/svm/transactions/[walletAddress]/route": "app/api/svm/transactions/[walletAddress]/route.js",
   "/(merchant)/analytics/page": "app/(merchant)/analytics/page.js",
   "/(merchant)/dashboard/page": "app/(merchant)/dashboard/page.js"
 }

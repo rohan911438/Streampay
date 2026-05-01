@@ -27,13 +27,13 @@ export async function GET() {
     };
 
     const details: any = {};
-
     // ---------------------------------------------------------
     // PART 2: LI.FI ROUTE TEST
     // ---------------------------------------------------------
     logDebug("Step 1: Requesting LI.FI Route (ETH -> SOL)");
     
-    // Testing with 1 USDC on Ethereum to Solana
+    const LIFI_API_KEY = process.env.LIFI_API_KEY;
+    
     const lifiParams = new URLSearchParams({
       fromChain: "1", // Ethereum
       toChain: "1151111081099710", // Solana
@@ -46,7 +46,10 @@ export async function GET() {
 
     let lifiRoute: any = null;
     try {
-      const lifiResponse = await fetch(`https://li.quest/v1/quote?${lifiParams}`);
+      const headers: Record<string, string> = { "Accept": "application/json" };
+      if (LIFI_API_KEY) headers["x-lifi-api-key"] = LIFI_API_KEY;
+
+      const lifiResponse = await fetch(`https://li.quest/v1/quote?${lifiParams}`, { headers });
       const lifiData = await lifiResponse.json();
       
       logDebug("LI.FI API Response", lifiData);
@@ -87,8 +90,9 @@ export async function GET() {
     // ---------------------------------------------------------
     logDebug("Step 2: Requesting Jupiter Quote (USDC -> SOL)");
 
-    // The output from LI.FI bridge will be USDC on Solana. We want to swap it to SOL.
-    // Using 1 USDC for the test swap
+    const JUPITER_API_URL = "https://quote-api.jup.ag/v6";
+    const JUPITER_API_KEY = process.env.JUPITER_API_KEY;
+
     const jupiterQuoteParams = new URLSearchParams({
       inputMint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
       outputMint: "So11111111111111111111111111111111111111112", // WSOL
@@ -98,7 +102,10 @@ export async function GET() {
 
     let jupiterQuote: any = null;
     try {
-      const quoteResponse = await fetch(`https://api.jup.ag/swap/v1/quote?${jupiterQuoteParams}`);
+      const headers: Record<string, string> = { "Accept": "application/json" };
+      if (JUPITER_API_KEY) headers["Authorization"] = `Bearer ${JUPITER_API_KEY}`;
+
+      const quoteResponse = await fetch(`${JUPITER_API_URL}/quote?${jupiterQuoteParams}`, { headers });
       const quoteData = await quoteResponse.json();
 
       logDebug("Jupiter Quote API Response", quoteData);
@@ -140,11 +147,12 @@ export async function GET() {
     logDebug("Step 3: Generating Jupiter Swap Transaction");
 
     try {
-      const swapResponse = await fetch('https://api.jup.ag/swap/v1/swap', {
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (JUPITER_API_KEY) headers["Authorization"] = `Bearer ${JUPITER_API_KEY}`;
+
+      const swapResponse = await fetch(`${JUPITER_API_URL}/swap`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers,
         body: JSON.stringify({
           quoteResponse: jupiterQuote,
           userPublicKey: "11111111111111111111111111111112", // Dummy system program public key

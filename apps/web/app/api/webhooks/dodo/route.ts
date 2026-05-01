@@ -661,14 +661,21 @@ export async function POST(req: Request) {
 
   if (DODO_WEBHOOK_SECRET) {
     if (!signature) {
+      console.error("[dodo-webhook] REJECTED: Missing signature header");
       return NextResponse.json({ error: "Missing webhook signature." }, { status: 401 });
     }
 
     if (!isValidSignature(rawBody, timestamp, signature, DODO_WEBHOOK_SECRET)) {
+      console.error("[dodo-webhook] REJECTED: Invalid signature");
       return NextResponse.json({ error: "Invalid webhook signature." }, { status: 401 });
     }
+    console.log("[dodo-webhook] Signature verified successfully");
   } else {
-    console.warn("[dodo-webhook] DODO_WEBHOOK_SECRET not configured; signature verification skipped");
+    if (process.env.NODE_ENV === "production") {
+      console.error("[dodo-webhook] CRITICAL: DODO_WEBHOOK_SECRET is not configured in production!");
+      return NextResponse.json({ error: "Webhook configuration error." }, { status: 500 });
+    }
+    console.warn("[dodo-webhook] DODO_WEBHOOK_SECRET not configured; signature verification skipped in dev");
   }
 
   if (!SUPPORTED_EVENTS.has(ids.eventType)) {

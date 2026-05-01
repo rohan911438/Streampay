@@ -206,6 +206,7 @@ export async function GET(
     // If Dune failed or returned no data, use the real Solana RPC with resilience
     if (balances.length === 0) {
       const rpcUrls = [
+        process.env.RPC_URL,
         process.env.NEXT_PUBLIC_RPC_URL,
         process.env.NEXT_PUBLIC_RPC_ENDPOINT,
         "https://api.devnet.solana.com",

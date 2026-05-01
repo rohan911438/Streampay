@@ -34,6 +34,8 @@ export async function POST(req: NextRequest) {
 
     // Initialize Solana connection
     const rpcUrl =
+      process.env.RPC_URL ||
+      process.env.NEXT_PUBLIC_RPC_URL ||
       process.env.NEXT_PUBLIC_RPC_ENDPOINT ||
       "https://api.devnet.solana.com";
     const connection = new Connection(rpcUrl, "confirmed");

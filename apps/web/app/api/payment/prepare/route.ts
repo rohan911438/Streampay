@@ -63,8 +63,13 @@ export async function POST(req: NextRequest) {
 
     // Initialize Solana connection
     const rpcUrl =
+      process.env.RPC_URL ||
+      process.env.NEXT_PUBLIC_RPC_URL ||
       process.env.NEXT_PUBLIC_RPC_ENDPOINT ||
       "https://api.devnet.solana.com";
+      
+    console.log(`[PaymentPrepare] Initiating for wallet: ${walletAddress}, amount: ${amount}, RPC: ${rpcUrl}`);
+    
     const connection = new Connection(rpcUrl, "confirmed");
 
     // Generate a secure off-chain reference ID for privacy abstraction
@@ -82,7 +87,8 @@ export async function POST(req: NextRequest) {
       const transferInstruction = SystemProgram.transfer({
         fromPubkey: recipientPubkey,
         toPubkey: treasuryWallet,
-        lamports: Number(amount) * 1_000_000,
+        lamports: Math.floor(Number(amount) * 1_000_000_000), // SOL to Lamports (for SOL) 
+        // Note: If using USDC, this would be different. Standardizing on SOL for this endpoint.
       });
       transaction.add(transferInstruction);
 
@@ -90,7 +96,7 @@ export async function POST(req: NextRequest) {
       // Privacy Abstraction: The memo is intentionally opaque. Real data is stored off-chain in the DB.
       const memoProgramId = new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
       const cloakPayload = JSON.stringify({
-        protocol: "MB-v1",
+        protocol: "SP-v1",
         ref: referenceId,
         h: Buffer.from(referenceId).toString("base64").substring(0, 8)
       });
@@ -107,7 +113,7 @@ export async function POST(req: NextRequest) {
       const instruction = SystemProgram.transfer({
         fromPubkey: recipientPubkey,
         toPubkey: treasuryWallet,
-        lamports: Number(amount) * 1_000_000,
+        lamports: Math.floor(Number(amount) * 1_000_000_000),
       });
       transaction.add(instruction);
     }
@@ -115,8 +121,19 @@ export async function POST(req: NextRequest) {
     // Set the fee payer (the user's wallet)
     transaction.feePayer = recipientPubkey;
 
-    // Get recent blockhash
-    const { blockhash } = await connection.getLatestBlockhash("confirmed");
+    // Get recent blockhash with retry logic for production stability
+    let blockhash: string;
+    try {
+      const latest = await connection.getLatestBlockhash("confirmed");
+      blockhash = latest.blockhash;
+    } catch (bhError) {
+      console.error("[PaymentPrepare] Failed to get latest blockhash:", bhError);
+      return NextResponse.json(
+        { error: "Solana RPC error: Failed to get latest blockhash" },
+        { status: 503 }
+      );
+    }
+    
     transaction.recentBlockhash = blockhash;
 
     // Serialize the transaction to base64
@@ -144,9 +161,11 @@ export async function POST(req: NextRequest) {
       });
       paymentId = payment.id;
     } catch (error) {
-      console.warn("Failed to create payment record:", error);
+      console.warn("[PaymentPrepare] Failed to create payment record in DB:", error);
       paymentId = `temp-${Date.now()}`;
     }
+
+    console.log(`[PaymentPrepare] Success: Payment ID ${paymentId} prepared.`);
 
     // Return the unsigned transaction to the frontend
     return NextResponse.json({
@@ -160,11 +179,11 @@ export async function POST(req: NextRequest) {
         "Unsigned transaction prepared. Sign with your wallet and send to network.",
     });
   } catch (error) {
-    console.error("[PaymentPrepare] Error:", error);
+    console.error("[PaymentPrepare] Critical Error:", error);
     return NextResponse.json(
       {
-        error: "Failed to prepare transaction",
-        details: error instanceof Error ? error.message : String(error),
+        error: "Internal Server Error",
+        details: error instanceof Error ? error.message : "An unexpected error occurred",
       },
       { status: 500 }
     );

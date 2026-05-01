@@ -15,8 +15,8 @@ const network = WalletAdapterNetwork.Devnet;
 
 const endpoint =
   process.env.NEXT_PUBLIC_RPC_URL ??
+  process.env.NEXT_PUBLIC_RPC_ENDPOINT ??
   process.env.NEXT_PUBLIC_SOLANA_RPC_URL ??
-  process.env.NEXT_PUBLIC_SOLANA_RPC_ENDPOINT ??
   clusterApiUrl(network);
 
 if (typeof window !== "undefined") {

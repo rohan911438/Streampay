@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { jsonDb } from "@/lib/json-db";
+import { db } from "@paystream/db";
+import { dbConfig } from "@/lib/db-config";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,7 +12,27 @@ function isPositiveNumber(value: unknown): value is number {
 
 export async function GET() {
   try {
-    const plans = await jsonDb.listPlans();
+    let plans: any[] = [];
+    if (dbConfig.shouldTryPostgres()) {
+      try {
+        const result = await db.query("SELECT * FROM plans WHERE is_active = true ORDER BY created_at ASC");
+        plans = result.rows.map(row => ({
+          id: row.id,
+          name: row.name,
+          priceUsdc: Number(row.price_usdc),
+          billingInterval: row.billing_interval,
+          description: row.description,
+          active: row.is_active
+        }));
+      } catch (err) {
+        console.error("[plans] Postgres fetch failed:", err);
+      }
+    }
+
+    if (plans.length === 0) {
+      plans = await jsonDb.listPlans();
+    }
+
     return NextResponse.json({ plans }, { status: 200 });
   } catch (error) {
     console.error("[plans] failed to list plans", error);
@@ -45,12 +67,29 @@ export async function POST(req: Request) {
   }
 
   try {
-    const plan = await jsonDb.createPlan({
-      name,
-      priceUsdc,
-      billingInterval,
-      description,
-    });
+    let plan = null;
+    if (dbConfig.shouldTryPostgres()) {
+      try {
+        plan = await db.insert("plans", {
+          name,
+          description,
+          price_usdc: priceUsdc,
+          billing_interval: billingInterval,
+          is_active: true
+        });
+      } catch (err) {
+        console.error("[plans] Postgres insert failed:", err);
+      }
+    }
+
+    if (!plan) {
+      plan = await jsonDb.createPlan({
+        name,
+        priceUsdc,
+        billingInterval,
+        description,
+      });
+    }
 
     return NextResponse.json({ plan }, { status: 201 });
   } catch (error) {

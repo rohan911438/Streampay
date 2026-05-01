@@ -40,11 +40,15 @@ export async function POST(req: NextRequest) {
             try {
                 const result = await db.query("SELECT * FROM payments WHERE id = $1", [paymentId]);
                 payment = result.rows[0];
-            } catch (err) {}
+                if (payment) console.log(`[Confirm] Found payment in Postgres: ${payment.id}`);
+            } catch (err) {
+                console.error("[Confirm] Postgres lookup failed:", err);
+            }
         }
         if (!payment) {
             const payments = await jsonDb.listPayments();
             payment = payments.find(p => p.id === paymentId);
+            if (payment) console.log(`[Confirm] Found payment in Local DB: ${payment.id}`);
         }
     }
 
@@ -54,7 +58,7 @@ export async function POST(req: NextRequest) {
         if (dbConfig.shouldTryPostgres()) {
             try {
                 payment = await db.insert("payments", {
-                    merchant_id: merchantId || process.env.MERCHANT_WALLET_ADDRESS,
+                    merchant_id: merchantId || "00000000-0000-0000-0000-000000000000",
                     wallet_address: wallet,
                     amount_usdc: amount,
                     plan_id: planId || null,
@@ -65,9 +69,12 @@ export async function POST(req: NextRequest) {
                     transaction_reference: txSignature,
                     customer_email: customerEmail || null
                 });
-                paymentId = payment.id;
+                if (payment) {
+                  paymentId = payment.id;
+                  console.log(`[Confirm] Created new payment in Postgres: ${paymentId}`);
+                }
             } catch (err: any) {
-                console.error("[Confirm] DB Insert failed:", err);
+                console.error("[Confirm] Postgres Insert failed:", err);
             }
         }
 
@@ -86,17 +93,23 @@ export async function POST(req: NextRequest) {
                 subscriptionId: null
             });
             paymentId = payment.id;
+            console.log(`[Confirm] Created new payment in Local DB: ${paymentId}`);
         }
     } else {
-        console.log(`[Confirm] Found existing record ${payment.id}. Updating status.`);
+        console.log(`[Confirm] Found existing record ${payment.id}. Updating status to success.`);
         // Update existing record
-        await PaymentService.updatePaymentStatus(payment.id, "success", {
-            transaction_reference: txSignature,
-            status: "success"
-        });
+        try {
+          await PaymentService.updatePaymentStatus(payment.id, "success", {
+              transaction_reference: txSignature,
+              status: "success"
+          });
+          console.log(`[Confirm] Updated status for ${payment.id}`);
+        } catch (updateErr) {
+          console.error("[Confirm] Failed to update payment status:", updateErr);
+        }
     }
 
-    console.log(`[Confirm] Payment ${paymentId} successfully recorded in database.`);
+    console.log(`[Confirm] Payment ${paymentId} successfully recorded. Payment Confirmed.`);
     console.groupEnd();
 
     return NextResponse.json({
@@ -106,11 +119,12 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (error) {
-    console.error("[PaymentConfirm] Error:", error);
+    console.error("[PaymentConfirm] Critical Error:", error);
+    if (console.groupEnd) console.groupEnd();
     return NextResponse.json(
       {
-        error: "Failed to confirm payment",
-        details: error instanceof Error ? error.message : String(error),
+        error: "Internal Server Error",
+        details: error instanceof Error ? error.message : "An unexpected error occurred",
       },
       { status: 500 }
     );
