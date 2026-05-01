@@ -314,44 +314,63 @@ export function PaymentPrep({ isDemo = false }: PaymentPrepProps) {
   async function onStandardCheckoutClick() {
     setActionError(null);
 
-    // For demo mode, allow without wallet connection
-    if (!isDemo && !connected) {
+    // Validate wallet connection
+    if (!connected || !publicKey) {
       setActionError("Please connect your wallet first.");
       return;
     }
 
-    if (!customerName.trim() || !customerEmail.trim()) {
-      setActionError("Please provide your contact details.");
+    if (!signTransaction) {
+      setActionError("Your wallet does not support transaction signing.");
       return;
     }
 
-    setIsSubmitting(true);
+    const walletAddress = publicKey.toBase58();
+    setIsPrivateSubmitting(true); // Re-use the loading state or rename to isSubmitting
 
     try {
-      const response = await fetch("/api/dodo/create-checkout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: customerName.trim(),
-          email: customerEmail.trim(),
-          walletAddress: publicKey?.toBase58() ?? (isDemo ? "11111111111111111111111111111112" : null),
-        }),
-      });
+      console.log("[PaymentPrep] Starting public transfer with wallet signature...");
+      
+      const walletContext = {
+        connected,
+        publicKey,
+        signTransaction,
+      } as any;
 
-      const data = (await response.json()) as CreateCheckoutResponse;
+      // Execute the complete payment flow with wallet signing (Public mode)
+      const result = await executePaymentWithWalletSignature(
+        walletAddress,
+        plan.priceUsdc,
+        walletContext,
+        plan.id ?? undefined,
+        "public" // Explicitly use public mode
+      );
 
-      if (!response.ok || !data.checkout_url) {
-        setActionError(data.error ?? "Checkout creation failed. Please try again.");
-        return;
+      if (result.success) {
+        console.log("[PaymentPrep] Public payment successful:", result.signature);
+        setSuccessData({
+          signature: result.signature,
+          id: result.paymentId,
+          confirmed: result.confirmed
+        });
+        setPaymentSuccess(true);
+      } else {
+        setActionError("Payment failed. Please try again.");
       }
-
-      window.location.assign(data.checkout_url);
-    } catch {
-      setActionError("A network error occurred. Please try again.");
+    } catch (error) {
+      console.error("[PaymentPrep] Public payment error:", error);
+      
+      if (error instanceof TransactionError) {
+        if (error.code === "WALLET_REJECTED") {
+          setActionError("❌ You rejected the transaction signing request.");
+        } else {
+          setActionError(`❌ Error: ${error.message}`);
+        }
+      } else {
+        setActionError("❌ An unexpected error occurred. Please try again.");
+      }
     } finally {
-      setIsSubmitting(false);
+      setIsPrivateSubmitting(false);
     }
   }
 
