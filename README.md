@@ -46,6 +46,30 @@ We realized that privacy doesn't require complex zero-knowledge proofs for every
 
 We've engineered a high-orchestration pipeline that turns a complex multi-chain journey into a single, elegant interaction for the user:
 
+```mermaid
+graph LR
+    subgraph "Phase 1: User Intent"
+    A[Connect Wallet] --> B[Select Asset & Chain]
+    B --> C[Confirm Amount]
+    end
+    
+    subgraph "Phase 2: Automated Orchestration"
+    C --> D[LI.FI - Route Discovery]
+    D --> E[Jupiter - Atomic Swap]
+    end
+    
+    subgraph "Phase 3: Shielded Settlement"
+    E --> F[Solana Execution]
+    F --> G[Cloak Privacy Layer]
+    G --> H[(Metadata Vault)]
+    end
+    
+    subgraph "Phase 4: Final Outcome"
+    H --> I[User Confirmation]
+    H --> J[Merchant Dashboard]
+    end
+```
+
 1.  **Connect & Select:** The user connects their wallet (e.g., Phantom, Metamask) and selects any asset on any supported chain (Ethereum, Base, Solana, etc.).
 2.  **Intelligent Discovery:** Our integration with **LI.FI** instantly discovers the most cost-effective and secure path across the ecosystem for the specific payment amount.
 3.  **One-Click Authorization:** The user signs a single transaction. StreamPay handles the bridge, the swap via **Jupiter**, and the final payment settlement automatically.
