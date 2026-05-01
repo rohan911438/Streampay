@@ -49,7 +49,18 @@ export async function POST(request: Request) {
       return NextResponse.json(result, { status: 400 });
     }
 
-    return NextResponse.json(result);
+    // Return structured response as per Part 8 requirements
+    return NextResponse.json({
+      status: "success",
+      source_chain: sourceChain || "ETH",
+      settled_on: "SOL",
+      private: true,
+      tx: result.tx || result.transactionSignature,
+      paymentId: result.paymentId,
+      route: result.route,
+      jupiterQuote: result.jupiterQuote,
+      swapTx: result.swapTx
+    });
   } catch (error: any) {
     console.error('[API/Unified] Unexpected error:', error);
     return NextResponse.json(

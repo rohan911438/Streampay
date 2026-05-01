@@ -234,6 +234,111 @@
       "transactionReference": "0x3abe864564f77dad",
       "id": "0cb6ec47-8745-4566-803a-6cbe20628934",
       "paidAt": "2026-05-01T05:16:55.381Z"
+    },
+    {
+      "merchantId": "demo-merchant",
+      "walletAddress": "5L9gFTDpsVvWWYyFpL6thhxpoY7iFUV5UY6Jt8S5vAzc",
+      "amountUsdc": 10,
+      "planId": "5a9b4523-36ca-40bd-9a3f-a4bdc0530e1a",
+      "status": "completed",
+      "type": "private",
+      "provider": "cloak",
+      "executionLayer": "magicblock",
+      "userId": null,
+      "subscriptionId": null,
+      "transactionReference": null,
+      "id": "3a38bc61-f0ea-4382-ab2d-11cdf05144e6",
+      "paidAt": "2026-05-01T06:15:51.575Z"
+    },
+    {
+      "merchantId": "00000000-0000-0000-0000-000000000000",
+      "walletAddress": "5L9gFTDpsVvWWYyFpL6thhxpoY7iFUV5UY6Jt8S5vAzc",
+      "amountUsdc": 10,
+      "planId": "5a9b4523-36ca-40bd-9a3f-a4bdc0530e1a",
+      "status": "pending",
+      "type": "private",
+      "provider": "cloak",
+      "executionLayer": "direct",
+      "userId": null,
+      "subscriptionId": null,
+      "transactionReference": "0x2c3f69ea41b58c6a",
+      "id": "adb7aad6-b90e-475a-8640-7bb6a06afadf",
+      "paidAt": "2026-05-01T06:19:03.514Z"
+    },
+    {
+      "merchantId": "demo-merchant",
+      "walletAddress": "5L9gFTDpsVvWWYyFpL6thhxpoY7iFUV5UY6Jt8S5vAzc",
+      "amountUsdc": 10,
+      "planId": "5a9b4523-36ca-40bd-9a3f-a4bdc0530e1a",
+      "status": "completed",
+      "type": "private",
+      "provider": "cloak",
+      "executionLayer": "magicblock",
+      "userId": null,
+      "subscriptionId": null,
+      "transactionReference": null,
+      "id": "054de53e-f7c7-4b60-b822-830d111f4d69",
+      "paidAt": "2026-05-01T06:19:26.719Z"
+    },
+    {
+      "merchantId": "00000000-0000-0000-0000-000000000000",
+      "walletAddress": "5L9gFTDpsVvWWYyFpL6thhxpoY7iFUV5UY6Jt8S5vAzc",
+      "amountUsdc": 10,
+      "planId": "5a9b4523-36ca-40bd-9a3f-a4bdc0530e1a",
+      "status": "pending",
+      "type": "private",
+      "provider": "cloak",
+      "executionLayer": "direct",
+      "userId": null,
+      "subscriptionId": null,
+      "transactionReference": "0xc03cc118ed53af89",
+      "id": "808fd5e2-55f9-4d38-9839-64de498bc765",
+      "paidAt": "2026-05-01T06:21:58.251Z"
+    },
+    {
+      "merchantId": "demo-merchant",
+      "walletAddress": "5L9gFTDpsVvWWYyFpL6thhxpoY7iFUV5UY6Jt8S5vAzc",
+      "amountUsdc": 10,
+      "planId": "5a9b4523-36ca-40bd-9a3f-a4bdc0530e1a",
+      "status": "completed",
+      "type": "private",
+      "provider": "cloak",
+      "executionLayer": "magicblock",
+      "userId": null,
+      "subscriptionId": null,
+      "transactionReference": null,
+      "id": "fa65aecd-4113-478f-9872-0bb9dff18f38",
+      "paidAt": "2026-05-01T06:22:17.710Z"
+    },
+    {
+      "merchantId": "00000000-0000-0000-0000-000000000000",
+      "walletAddress": "5L9gFTDpsVvWWYyFpL6thhxpoY7iFUV5UY6Jt8S5vAzc",
+      "amountUsdc": 10,
+      "planId": "5a9b4523-36ca-40bd-9a3f-a4bdc0530e1a",
+      "status": "pending",
+      "type": "private",
+      "provider": "cloak",
+      "executionLayer": "direct",
+      "userId": null,
+      "subscriptionId": null,
+      "transactionReference": "0xa04184b915e14042",
+      "id": "ba03c8d8-fc19-4ff0-bffa-73778b733113",
+      "paidAt": "2026-05-01T06:25:32.071Z"
+    },
+    {
+      "merchantId": "demo-merchant",
+      "walletAddress": "5L9gFTDpsVvWWYyFpL6thhxpoY7iFUV5UY6Jt8S5vAzc",
+      "amountUsdc": 10,
+      "planId": "5a9b4523-36ca-40bd-9a3f-a4bdc0530e1a",
+      "status": "completed",
+      "type": "private",
+      "provider": "cloak",
+      "executionLayer": "magicblock",
+      "userId": null,
+      "subscriptionId": null,
+      "transactionReference": null,
+      "id": "f6f41566-0029-4fad-b215-cd2364218bc3",
+      "paidAt": "2026-05-01T06:25:46.051Z"
     }
   ],
   "checkoutSessions": [
@@ -373,6 +478,70 @@
         "warning": "This payment was simulated for testing. Replace with real webhook in production."
       },
       "createdAt": "2026-04-30T05:43:13.039Z"
+    },
+    {
+      "id": "712d9ee7-61e1-45fe-a3f6-a61d4e514b58",
+      "subscriptionId": "5L9gFTDpsVvWWYyFpL6thhxpoY7iFUV5UY6Jt8S5vAzc",
+      "merchantId": "00000000-0000-0000-0000-000000000000",
+      "eventType": "payment_success",
+      "provider": "cloak",
+      "executionLayer": "magicblock",
+      "amountUsdc": 10,
+      "metadata": {
+        "userId": "5L9gFTDpsVvWWYyFpL6thhxpoY7iFUV5UY6Jt8S5vAzc",
+        "providerEventId": "SIMULATED-REF",
+        "merchant_id": "demo-merchant",
+        "magicBlockRef": "SIMULATED-REF"
+      },
+      "createdAt": "2026-05-01T06:15:51.999Z"
+    },
+    {
+      "id": "9fa952d7-933b-4cf2-ab88-6d79bf6de72f",
+      "subscriptionId": "5L9gFTDpsVvWWYyFpL6thhxpoY7iFUV5UY6Jt8S5vAzc",
+      "merchantId": "00000000-0000-0000-0000-000000000000",
+      "eventType": "payment_success",
+      "provider": "cloak",
+      "executionLayer": "magicblock",
+      "amountUsdc": 10,
+      "metadata": {
+        "userId": "5L9gFTDpsVvWWYyFpL6thhxpoY7iFUV5UY6Jt8S5vAzc",
+        "providerEventId": "SIMULATED-REF",
+        "merchant_id": "demo-merchant",
+        "magicBlockRef": "SIMULATED-REF"
+      },
+      "createdAt": "2026-05-01T06:19:27.279Z"
+    },
+    {
+      "id": "638481ab-2efc-4219-a61d-fff6b8a37de1",
+      "subscriptionId": "5L9gFTDpsVvWWYyFpL6thhxpoY7iFUV5UY6Jt8S5vAzc",
+      "merchantId": "00000000-0000-0000-0000-000000000000",
+      "eventType": "payment_success",
+      "provider": "cloak",
+      "executionLayer": "magicblock",
+      "amountUsdc": 10,
+      "metadata": {
+        "userId": "5L9gFTDpsVvWWYyFpL6thhxpoY7iFUV5UY6Jt8S5vAzc",
+        "providerEventId": "SIMULATED-REF",
+        "merchant_id": "demo-merchant",
+        "magicBlockRef": "SIMULATED-REF"
+      },
+      "createdAt": "2026-05-01T06:22:17.826Z"
+    },
+    {
+      "id": "6db9fe0b-3a5c-4c5b-b7ff-4cb05ac955f9",
+      "subscriptionId": "5L9gFTDpsVvWWYyFpL6thhxpoY7iFUV5UY6Jt8S5vAzc",
+      "merchantId": "00000000-0000-0000-0000-000000000000",
+      "eventType": "payment_success",
+      "provider": "cloak",
+      "executionLayer": "magicblock",
+      "amountUsdc": 10,
+      "metadata": {
+        "userId": "5L9gFTDpsVvWWYyFpL6thhxpoY7iFUV5UY6Jt8S5vAzc",
+        "providerEventId": "SIMULATED-REF",
+        "merchant_id": "demo-merchant",
+        "magicBlockRef": "SIMULATED-REF"
+      },
+      "createdAt": "2026-05-01T06:25:46.108Z"
     }
   ]
 }

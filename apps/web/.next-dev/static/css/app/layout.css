@@ -1873,6 +1873,9 @@ video {
 .bg-white\/90 {
   background-color: rgb(255 255 255 / 0.9);
 }
+.bg-blue-50\/70 {
+  background-color: rgb(239 246 255 / 0.7);
+}
 .bg-\[linear-gradient\(rgba\(255\2c 255\2c 255\2c 0\.03\)_1px\2c transparent_1px\)\2c linear-gradient\(90deg\2c rgba\(255\2c 255\2c 255\2c 0\.03\)_1px\2c transparent_1px\)\] {
   background-image: linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);
 }
@@ -2499,6 +2502,13 @@ video {
 }
 .text-white\/85 {
   color: rgb(255 255 255 / 0.85);
+}
+.text-blue-800 {
+  --tw-text-opacity: 1;
+  color: rgb(30 64 175 / var(--tw-text-opacity, 1));
+}
+.text-blue-900\/80 {
+  color: rgb(30 58 138 / 0.8);
 }
 .antialiased {
   -webkit-font-smoothing: antialiased;
