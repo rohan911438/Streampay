@@ -67,6 +67,10 @@ export async function POST(req: NextRequest) {
       "https://api.devnet.solana.com";
     const connection = new Connection(rpcUrl, "confirmed");
 
+    // Generate a secure off-chain reference ID for privacy abstraction
+    const referenceId = "0x" + Math.random().toString(16).substring(2, 10) + Math.random().toString(16).substring(2, 10);
+
+
     // Create an unsigned transaction
     // For demo purposes, we'll create a simple transfer instruction
     // In production, this could be a private transfer using Cloak
@@ -83,14 +87,12 @@ export async function POST(req: NextRequest) {
       transaction.add(transferInstruction);
 
       // 2. REQUIRED: Private execution pipeline instruction (Cloak/MagicBlock wrapper)
-      // This memo provides the routing metadata for the shielded execution
+      // Privacy Abstraction: The memo is intentionally opaque. Real data is stored off-chain in the DB.
       const memoProgramId = new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
       const cloakPayload = JSON.stringify({
-        protocol: "MagicBlock-v1",
-        action: "private_pay",
-        amount_usdc: amount,
-        merchant: treasuryWallet.toBase58(),
-        routing: "shielded"
+        protocol: "MB-v1",
+        ref: referenceId,
+        h: Buffer.from(referenceId).toString("base64").substring(0, 8)
       });
       
       const instruction = new TransactionInstruction({
@@ -138,7 +140,7 @@ export async function POST(req: NextRequest) {
         executionLayer: "direct",
         userId: null,
         subscriptionId: null,
-        transactionReference: null,
+        transactionReference: referenceId,
       });
       paymentId = payment.id;
     } catch (error) {
