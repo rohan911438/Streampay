@@ -1,14 +1,14 @@
 {
   "pages": {
-    "/(subscriber)/pay/[slug]/page": [
+    "/(merchant)/dashboard/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(subscriber)/pay/[slug]/page.js"
+      "static/chunks/app/(merchant)/dashboard/page.js"
     ],
-    "/(subscriber)/layout": [
+    "/(merchant)/layout": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(subscriber)/layout.js"
+      "static/chunks/app/(merchant)/layout.js"
     ],
     "/layout": [
       "static/chunks/webpack.js",
@@ -26,25 +26,10 @@
       "static/chunks/main-app.js",
       "static/chunks/app/not-found.js"
     ],
-    "/(merchant)/dashboard/page": [
+    "/(merchant)/developer/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(merchant)/dashboard/page.js"
-    ],
-    "/(merchant)/layout": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(merchant)/layout.js"
-    ],
-    "/(merchant)/analytics/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(merchant)/analytics/page.js"
-    ],
-    "/_not-found/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/_not-found/page.js"
+      "static/chunks/app/(merchant)/developer/page.js"
     ]
   }
 }

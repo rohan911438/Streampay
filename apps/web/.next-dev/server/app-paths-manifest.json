@@ -1,8 +1,5 @@
 {
-  "/api/users/sync/route": "app/api/users/sync/route.js",
-  "/api/svm/balances/[walletAddress]/route": "app/api/svm/balances/[walletAddress]/route.js",
-  "/api/svm/transactions/[walletAddress]/route": "app/api/svm/transactions/[walletAddress]/route.js",
-  "/(subscriber)/pay/[slug]/page": "app/(subscriber)/pay/[slug]/page.js",
+  "/api/v1/merchants/me/route": "app/api/v1/merchants/me/route.js",
   "/(merchant)/dashboard/page": "app/(merchant)/dashboard/page.js",
-  "/(merchant)/analytics/page": "app/(merchant)/analytics/page.js"
+  "/(merchant)/developer/page": "app/(merchant)/developer/page.js"
 }
