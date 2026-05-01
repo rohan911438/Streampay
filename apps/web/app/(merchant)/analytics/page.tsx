@@ -80,12 +80,8 @@ function StatCard({
   );
 }
 
-function formatUsd(value: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 2,
-  }).format(value);
+function formatCurrency(value: number): string {
+  return `${value.toLocaleString("en-US", { maximumFractionDigits: 4 })} SOL`;
 }
 
 function formatDate(value: string | null): string {
@@ -241,7 +237,7 @@ export default function AnalyticsPage() {
 
       <div className="grid gap-6 md:grid-cols-3">
         <StatCard label="Wallet" value={walletLabel} icon={Wallet} />
-        <StatCard label="Wallet Balance (USD)" value={formatUsd(data.walletBalanceUsd)} icon={DollarSign} />
+        <StatCard label="Wallet Balance (SOL)" value={formatCurrency(data.walletBalanceUsd)} icon={DollarSign} />
         <StatCard label="Total Transactions" value={String(data.totalTransactions)} icon={Activity} />
       </div>
 
@@ -266,7 +262,7 @@ export default function AnalyticsPage() {
         <CardHeader className="flex flex-row items-center justify-between pb-8">
           <div className="space-y-1">
             <CardTitle className="text-xl font-bold">7-Day Activity Trend</CardTitle>
-            <CardDescription>Daily USD value from the most recent wallet transactions.</CardDescription>
+            <CardDescription>Daily volume from the most recent wallet transactions.</CardDescription>
           </div>
         </CardHeader>
         <CardContent className="px-2">
@@ -296,7 +292,7 @@ export default function AnalyticsPage() {
                 <Tooltip 
                   contentStyle={{ borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                   labelStyle={{ fontWeight: 800, color: '#0F172A', marginBottom: '4px' }}
-                  formatter={(value) => [formatUsd(Number(value)), "Volume"]}
+                  formatter={(value) => [formatCurrency(Number(value)), "Volume"]}
                 />
                 <Area 
                   type="monotone" 
@@ -330,7 +326,7 @@ export default function AnalyticsPage() {
                     <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Timestamp</th>
                     <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Type</th>
                     <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Amount</th>
-                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">USD Value</th>
+                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Value (SOL)</th>
                     <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
                     <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Signature</th>
                   </tr>
@@ -341,7 +337,7 @@ export default function AnalyticsPage() {
                       <td className="px-6 py-4 text-xs font-semibold text-slate-600">{formatDate(tx.timestamp)}</td>
                       <td className="px-6 py-4 text-xs font-bold text-slate-900 uppercase">{tx.type}</td>
                       <td className="px-6 py-4 text-xs font-bold text-slate-900">{tx.amount.toLocaleString()}</td>
-                      <td className="px-6 py-4 text-xs font-black text-slate-900">{formatUsd(tx.usdValue)}</td>
+                      <td className="px-6 py-4 text-xs font-black text-slate-900">{formatCurrency(tx.usdValue)}</td>
                       <td className="px-6 py-4 text-xs font-semibold text-slate-600 uppercase">{tx.status}</td>
                       <td className="px-6 py-4 text-xs font-mono text-slate-500">{shortSignature(tx.signature)}</td>
                     </tr>
