@@ -10,6 +10,7 @@
 
 <p align="center">
   <a href="https://streampay-web.vercel.app">🌐 Live App</a> •
+  <a href="https://www.npmjs.com/package/streampay-sdk">📦 npm SDK</a> •
   <a href="#">🎥 Demo Video (Coming Soon)</a> •
   <a href="#">📊 Pitch Deck (Coming Soon)</a>
 </p>
@@ -89,7 +90,7 @@ graph LR
 *   **🔗 Wallet-Based Payments:** Full support for industry-standard wallets like **Phantom** and Metamask.
 *   **📡 Webhook Support:** Real-time event notifications to sync your backend with every private payment.
 *   **🧾 Subscription Tracking:** Advanced logic for managing recurring billing cycles without exposing customer data.
-*   **🧠 Developer SDK Integration:** A developer-first approach with a robust SDK for integrating StreamPay into any application.
+*   **🧠 Developer SDK Integration:** A developer-first approach with our **[streampay-sdk](https://www.npmjs.com/package/streampay-sdk)** (100+ downloads), allowing for seamless integration of private payments into any application.
 
 ---
 
@@ -165,6 +166,63 @@ graph TD
 *   **The Privacy Engine:** Powered by the **Cloak SDK**, this layer executes shielded transactions that decouple the public ledger from sensitive payment details. We support **Selective Auditability** through viewing keys, allowing merchants to remain compliant while keeping their data private.
 *   **Persistence & Persistence:** The **Metadata Vault** is our secure off-chain layer that bridges the gap between raw blockchain hashes and human-readable business data. 
 *   **The Merchant Ecosystem:** A full-stack suite including a **Next.js Console**, **Dune Analytics** for aggregate insights, and a robust **Webhook Engine** that triggers external merchant services (ERP, CRM, etc.) upon payment confirmation.
+
+---
+
+## StreamPay SDK
+
+StreamPay is a developer-first platform. Our **[streampay-sdk](https://www.npmjs.com/package/streampay-sdk)** (100+ downloads) allows you to integrate privacy-first, cross-chain payments into your application with just a few lines of code.
+
+### 🌟 Features
+- **🔐 Privacy by Default** - All payments protected by Cloak's privacy layer.
+- **⚡ Optimized Execution** - MagicBlock integration for faster, cheaper transactions.
+- **💰 Multi-Currency Support** - USDC, USDT, and native SOL payments.
+- **🔄 Automatic Retries** - Built-in exponential backoff for resilience.
+- **📊 Type-Safe** - Full TypeScript support with strict types.
+
+### 🚀 Quick Start
+
+**Installation**
+```bash
+npm install streampay-sdk
+```
+
+**Basic Usage**
+```typescript
+import { StreamPay } from "streampay-sdk";
+
+// Initialize SDK with your API key
+const sdk = new StreamPay({
+  apiKey: "sp_live_abc123...",
+});
+
+// Create a private payment
+const payment = await sdk.payments.create({
+  amount: 1000, // $10.00 in cents
+  currency: "USDC",
+  recipient_id: "7qLn8gQUJfaRFMx2HaJe5aAMYm7MgKgsCp7PVKgBvfXY",
+  privacy_mode: "cloak",
+  source_chain: "solana",
+});
+
+console.log(`Payment created: ${payment.id}`);
+console.log(`Status: ${payment.status}`);
+```
+
+### 🔄 Subscriptions API
+Manage recurring billing with flexible intervals while maintaining customer privacy.
+
+```typescript
+const subscription = await sdk.subscriptions.create({
+  amount: 2999, // $29.99 per month
+  currency: "USDC",
+  interval: "monthly",
+  recipient_id: "user_wallet",
+  privacy_mode: "cloak",
+});
+```
+
+**[Full SDK Documentation →](https://www.npmjs.com/package/streampay-sdk)**
 
 ---
 

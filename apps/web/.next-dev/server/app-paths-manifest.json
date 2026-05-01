@@ -1,1 +1,7 @@
-{}
+{
+  "/api/svm/transactions/[walletAddress]/route": "app/api/svm/transactions/[walletAddress]/route.js",
+  "/api/v1/merchants/me/route": "app/api/v1/merchants/me/route.js",
+  "/(merchant)/analytics/page": "app/(merchant)/analytics/page.js",
+  "/(merchant)/developer/page": "app/(merchant)/developer/page.js",
+  "/api/svm/balances/[walletAddress]/route": "app/api/svm/balances/[walletAddress]/route.js"
+}
