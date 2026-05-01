@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Connection, PublicKey, Transaction, TransactionInstruction, SystemProgram } from "@solana/web3.js";
-import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { jsonDb } from "@/lib/json-db";
 
 export const runtime = "nodejs";
