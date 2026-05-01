@@ -125,8 +125,12 @@ async function readDb(): Promise<DataStore> {
 }
 
 async function writeDb(data: DataStore) {
-  await ensureDir();
-  await writeFile(join(DB_DIR, "db.json"), JSON.stringify(data, null, 2), "utf-8");
+  try {
+    await ensureDir();
+    await writeFile(join(DB_DIR, "db.json"), JSON.stringify(data, null, 2), "utf-8");
+  } catch (error) {
+    console.warn("[jsonDb] Failed to write to database (likely read-only filesystem):", error);
+  }
 }
 
 export const jsonDb = {

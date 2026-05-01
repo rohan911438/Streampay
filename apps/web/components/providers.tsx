@@ -24,7 +24,7 @@ if (typeof window !== "undefined") {
 }
 
 const WALLET_STORAGE_KEY = "walletName";
-const CONNECT_TIMEOUT_MS = 12000;
+const CONNECT_TIMEOUT_MS = 60000;
 
 function WalletConnectionGuard() {
   const { wallets, connected, connecting, disconnect } = useWallet();
