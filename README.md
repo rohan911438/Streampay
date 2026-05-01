@@ -226,23 +226,15 @@ StreamPay is built using a modern, high-performance stack designed for the next 
 
 *Experience the seamless, privacy-first interface of StreamPay.*
 
-<p align="center">
-  <img src="https://via.placeholder.com/800x450.png?text=Checkout+Experience+Preview" alt="Checkout Page" width="800" />
-  <br>
-  <i>1. Secure Checkout: Multi-chain intake with one-click private settlement.</i>
-</p>
+<img width="1761" height="827" alt="image" src="https://github.com/user-attachments/assets/57d6b87b-b9cb-4d1d-b92e-3b4e1878ea2d" />
 
-<p align="center">
-  <img src="https://via.placeholder.com/800x450.png?text=Merchant+Dashboard+Preview" alt="Merchant Dashboard" width="800" />
-  <br>
-  <i>2. Merchant Dashboard: Full visibility into private subscriptions and revenue trends.</i>
-</p>
+<img width="1606" height="802" alt="image" src="https://github.com/user-attachments/assets/8cc6943b-bcf3-4bef-bea8-02e239845036" />
 
-<p align="center">
-  <img src="https://via.placeholder.com/800x450.png?text=Analytics+and+Reporting+Preview" alt="Analytics Overview" width="800" />
-  <br>
-  <i>3. Real-time Analytics: Aggregate data insights powered by Dune Analytics.</i>
-</p>
+<img width="1736" height="788" alt="image" src="https://github.com/user-attachments/assets/6ef55a7a-e08c-4008-9a77-7d3d84c82118" />
+
+<img width="1659" height="801" alt="image" src="https://github.com/user-attachments/assets/26abebd8-63f2-4588-9444-36c7733aaf0c" />
+
+<img width="1780" height="827" alt="image" src="https://github.com/user-attachments/assets/349e9006-d3db-41fc-9c9a-a60737c7b074" />
 
 ---
 
