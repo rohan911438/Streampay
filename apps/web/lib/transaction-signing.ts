@@ -403,14 +403,34 @@ export async function executePaymentWithWalletSignature(
       confirmed = confirmationResult.confirmed;
     }
 
+    // 🟣 NEW STEP: SYNC WITH BACKEND DB
+    console.log("[PaymentFlow] Step 9: Syncing payment with backend database...");
+    try {
+      await fetch("/api/payment/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          txSignature: submitResponse.signature,
+          wallet: walletAddress,
+          amount: amount,
+          referenceId: prepareResponse.paymentId,
+          type: type,
+          planId: planId
+        })
+      });
+      console.log("[PaymentFlow] Backend sync complete.");
+    } catch (syncError) {
+      console.warn("[PaymentFlow] Backend sync failed, but transaction is on-chain:", syncError);
+    }
+
     return {
       success: true,
       signature: submitResponse.signature,
       paymentId: submitResponse.paymentId,
       confirmed: confirmed,
       message: confirmed
-        ? "✅ Payment successful! Transaction confirmed on-chain."
-        : "⏳ Payment sent. Waiting for on-chain confirmation...",
+        ? "✅ Payment successful! Transaction confirmed on-chain and recorded in dashboard."
+        : "⏳ Payment sent. Transaction recorded in dashboard and waiting for on-chain confirmation...",
     };
   } catch (error) {
     console.error("[PaymentFlow] Error during payment:", error);

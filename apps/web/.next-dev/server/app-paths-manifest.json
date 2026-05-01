@@ -1,10 +1,9 @@
 {
-  "/api/plans/route": "app/api/plans/route.js",
-  "/api/cross-chain/route": "app/api/cross-chain/route.js",
-  "/api/payment/prepare/route": "app/api/payment/prepare/route.js",
-  "/api/payment/submit-signed/route": "app/api/payment/submit-signed/route.js",
-  "/api/payment/unified/route": "app/api/payment/unified/route.js",
   "/page": "app/page.js",
-  "/(subscriber)/pay/[slug]/page": "app/(subscriber)/pay/[slug]/page.js",
-  "/(merchant)/dashboard/page": "app/(merchant)/dashboard/page.js"
+  "/api/payment/prepare/route": "app/api/payment/prepare/route.js",
+  "/api/payment/confirm/route": "app/api/payment/confirm/route.js",
+  "/api/users/sync/route": "app/api/users/sync/route.js",
+  "/api/payment/submit-signed/route": "app/api/payment/submit-signed/route.js",
+  "/(merchant)/dashboard/page": "app/(merchant)/dashboard/page.js",
+  "/(subscriber)/pay/[slug]/page": "app/(subscriber)/pay/[slug]/page.js"
 }
