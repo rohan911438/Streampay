@@ -8,6 +8,7 @@ module.exports = (phase) => {
     reactStrictMode: true,
     // Keep dev and production outputs isolated to avoid stale-chunk 404s.
     distDir: isDev ? ".next-dev" : ".next",
+    transpilePackages: ["@paystream/db", "@paystream/solana"],
     webpack: (config, { isServer }) => {
       if (!isServer) {
         config.resolve.fallback = {

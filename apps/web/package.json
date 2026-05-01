@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@paystream/db": "*",
+    "@paystream/solana": "*",
     "@solana/wallet-adapter-base": "^0.9.23",
     "@solana/wallet-adapter-phantom": "^0.9.28",
     "@solana/wallet-adapter-react": "^0.15.39",
