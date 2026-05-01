@@ -222,6 +222,30 @@ StreamPay is built using a modern, high-performance stack designed for the next 
 
 ---
 
+## Interface Preview
+
+*Experience the seamless, privacy-first interface of StreamPay.*
+
+<p align="center">
+  <img src="https://via.placeholder.com/800x450.png?text=Checkout+Experience+Preview" alt="Checkout Page" width="800" />
+  <br>
+  <i>1. Secure Checkout: Multi-chain intake with one-click private settlement.</i>
+</p>
+
+<p align="center">
+  <img src="https://via.placeholder.com/800x450.png?text=Merchant+Dashboard+Preview" alt="Merchant Dashboard" width="800" />
+  <br>
+  <i>2. Merchant Dashboard: Full visibility into private subscriptions and revenue trends.</i>
+</p>
+
+<p align="center">
+  <img src="https://via.placeholder.com/800x450.png?text=Analytics+and+Reporting+Preview" alt="Analytics Overview" width="800" />
+  <br>
+  <i>3. Real-time Analytics: Aggregate data insights powered by Dune Analytics.</i>
+</p>
+
+---
+
 ## Demo Flow: The Privacy Difference
 
 Our demo illustrates the stark contrast between public exposure and professional privacy:
