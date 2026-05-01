@@ -1,5 +1,30 @@
-# StreamPay: Privacy-First Payments on Solana
-### Shielded subscriptions for the real world.
+<p align="center">
+  <img src="apps/web/public/logo.png" alt="StreamPay Logo" width="120" />
+</p>
+
+<h1 align="center">StreamPay</h1>
+
+<p align="center">
+  <b>Private, cross-chain payment infrastructure powered by Solana</b>
+</p>
+
+<p align="center">
+  <a href="https://streampay-web.vercel.app">🌐 Live App</a> •
+  <a href="#">🎥 Demo Video (Coming Soon)</a> •
+  <a href="#">📊 Pitch Deck (Coming Soon)</a>
+</p>
+
+<p align="center">
+  Built by <b>Rohan Kumar</b> • Team <b>BROTHERHOOD</b>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Next.js" />
+  <img src="https://img.shields.io/badge/Solana-9945FF?style=for-the-badge&logo=solana&logoColor=white" alt="Solana" />
+  <img src="https://img.shields.io/badge/Status-Active-brightgreen?style=for-the-badge" alt="Status" />
+</p>
+
+---
 
 StreamPay is a privacy-first payment platform built on Solana that enables businesses and individuals to execute recurring payments without exposing sensitive financial data. By integrating **Cloak** as our primary transaction layer, we’ve built a solution where payment amounts and recipients remain shielded on-chain, while maintaining optional auditability for compliance.
 
