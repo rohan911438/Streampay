@@ -44,9 +44,22 @@ export async function POST(req: NextRequest) {
       const transaction = Transaction.from(transactionBuffer);
 
       // Send the raw transaction
-      const signature = await connection.sendRawTransaction(
-        transaction.serialize()
-      );
+      let signature;
+      try {
+        signature = await connection.sendRawTransaction(
+          transaction.serialize(),
+          { skipPreflight: true }
+        );
+      } catch (sendError: any) {
+        if (sendError.message && sendError.message.includes('already been processed')) {
+          console.log("[PaymentSubmit] Transaction already processed, proceeding with confirmation check");
+          const bs58 = require('bs58');
+          const encodeFn = bs58.default ? bs58.default.encode : bs58.encode;
+          signature = encodeFn(transaction.signatures[0].signature);
+        } else {
+          throw sendError;
+        }
+      }
 
       console.log(`[PaymentSubmit] Transaction sent with signature: ${signature}`);
 
