@@ -11,7 +11,7 @@
 <p align="center">
   <a href="https://streampay-web.vercel.app">🌐 Live App</a> •
   <a href="https://www.npmjs.com/package/streampay-sdk">📦 npm SDK</a> •
-  <a href="#">🎥 Demo Video (Coming Soon)</a> •
+  <a href="https://youtu.be/L0BmvmVClk4?si=8zuvj-owzLILCGVa">🎥 Demo Video</a> •
   <a href="https://drive.google.com/file/d/1Kq35RQpjjwlggH1Ex4szRgnrQtxLuJHE/view?usp=drivesdk">📊 Pitch Deck</a>
 </p>
 
@@ -271,7 +271,7 @@ StreamPay is built using a modern, high-performance stack designed for the next 
 
 ## Live Demo
 
-**🌐 [Launch StreamPay Web App](https://streampay-web.vercel.app)**
+**🌐 [Launch StreamPay Web App](https://streampay-web.vercel.app)** • **🎥 [Watch Demo Video](https://youtu.be/L0BmvmVClk4?si=8zuvj-owzLILCGVa)**
 
 ### How to use:
 1.  **Connect Wallet:** Link your Phantom or Metamask wallet.
